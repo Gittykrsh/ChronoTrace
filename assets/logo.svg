@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" width="280" height="64">
+  <defs>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#35D6E8"/>
+      <stop offset="45%" stop-color="#8B7CFF"/>
+      <stop offset="100%" stop-color="#0E1628"/>
+    </linearGradient>
+    <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#35D6E8"/>
+      <stop offset="100%" stop-color="#37D99A"/>
+    </linearGradient>
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- High-Tech Cyber Forensic Shield Insignia -->
+  <g transform="translate(6, 4)">
+    <!-- Faceted Cyber Shield Outline -->
+    <path d="M 28 2 L 52 11 L 52 33 C 52 46 28 55 28 55 C 28 55 4 46 4 33 L 4 11 Z" 
+          fill="#121D30" stroke="url(#shieldGrad)" stroke-width="2.8" stroke-linejoin="round"/>
+    
+    <!-- Inner Chronometer Radar Ring -->
+    <circle cx="28" cy="27" r="16" fill="#0E1628" stroke="#1E2F4D" stroke-width="1.5"/>
+    <circle cx="28" cy="27" r="16" fill="none" stroke="#35D6E8" stroke-width="2" stroke-dasharray="28 18" stroke-linecap="round"/>
+
+    <!-- Provenance Graph Edges -->
+    <line x1="18" y1="21" x2="37" y2="23" stroke="#8B7CFF" stroke-width="1.8"/>
+    <line x1="37" y1="23" x2="27" y2="37" stroke="#35D6E8" stroke-width="2"/>
+    <line x1="18" y1="21" x2="27" y2="37" stroke="#37D99A" stroke-width="1.2" stroke-dasharray="2 2"/>
+
+    <!-- Clock / Chrono Radar Hands -->
+    <line x1="28" y1="27" x2="28" y2="16" stroke="#35D6E8" stroke-width="2.4" stroke-linecap="round"/>
+    <line x1="28" y1="27" x2="35" y2="27" stroke="#37D99A" stroke-width="2.2" stroke-linecap="round"/>
+
+    <!-- Center Pivot & Graph Nodes with Glow -->
+    <circle cx="28" cy="27" r="2.8" fill="#FFFFFF" filter="url(#neonGlow)"/>
+    <circle cx="18" cy="21" r="3.4" fill="#8B7CFF" stroke="#FFFFFF" stroke-width="0.8" filter="url(#neonGlow)"/>
+    <circle cx="37" cy="23" r="3.6" fill="#35D6E8" stroke="#FFFFFF" stroke-width="0.8" filter="url(#neonGlow)"/>
+    <circle cx="27" cy="37" r="3.2" fill="#37D99A" stroke="#FFFFFF" stroke-width="0.8" filter="url(#neonGlow)"/>
+  </g>
+
+  <!-- Crisp Brand Typography -->
+  <g transform="translate(70, 10)">
+    <text x="0" y="26" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif" font-size="24" font-weight="900" fill="#FFFFFF" letter-spacing="1">
+      CHRONO<tspan fill="#35D6E8">TRACE</tspan>
+    </text>
+    <text x="1" y="42" font-family="'JetBrains Mono', 'Consolas', monospace" font-size="9" font-weight="800" fill="#35D6E8" letter-spacing="2.6">
+      FORENSIC RECONSTRUCTION
+    </text>
+  </g>
+</svg>
