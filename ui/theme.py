@@ -252,42 +252,97 @@ section[data-testid="stSidebar"] ::-webkit-scrollbar,
     margin-bottom: 3px !important;
 }
 
-/* Flat Navigation Links: Inactive has NO background box and NO border */
-div.stPageLink a {
+/* Flat Navigation Links: Inactive has transparent background and smooth transitions */
+section[data-testid="stSidebar"] div.stPageLink a {
     background: transparent !important;
     border: 1px solid transparent !important;
     border-radius: 6px !important;
-    padding: 5px 8px !important;
+    padding: 6px 10px !important;
     color: #94A3B8 !important;
     font-weight: 500 !important;
-    font-size: 0.81rem !important;
+    font-size: 0.82rem !important;
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 9px !important;
     text-decoration: none !important;
-    transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin-bottom: 1px !important;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    margin-bottom: 2px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
+    cursor: pointer !important;
 }
 
-div.stPageLink a:hover {
-    background: rgba(255, 255, 255, 0.04) !important;
-    color: #F8FAFC !important;
-    transform: translateX(2px) !important;
+section[data-testid="stSidebar"] div.stPageLink a p {
+    color: #94A3B8 !important;
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    margin: 0 !important;
+    transition: color 0.18s ease !important;
 }
 
-/* Active navigation link: subtle cobalt blue pill with crisp highlight */
-div.stPageLink a[aria-current="page"] {
+section[data-testid="stSidebar"] div.stPageLink a span,
+section[data-testid="stSidebar"] div.stPageLink a [data-testid="stIconMaterial"] {
+    color: #64748B !important;
+    font-size: 1.05rem !important;
+    transition: color 0.18s ease, transform 0.18s ease !important;
+}
+
+/* UNMISTAKABLE SIDEBAR HOVER STATE: High-visibility electric blue pill + cyan border + slide */
+section[data-testid="stSidebar"] div.stPageLink a:hover {
     background: rgba(29, 111, 232, 0.18) !important;
-    border: 1px solid rgba(56, 189, 248, 0.3) !important;
-    color: #38BDF8 !important;
+    background-color: rgba(29, 111, 232, 0.18) !important;
+    border: 1px solid rgba(56, 189, 248, 0.45) !important;
+    color: #FFFFFF !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 10px rgba(56, 189, 248, 0.12) !important;
+}
+
+section[data-testid="stSidebar"] div.stPageLink a:hover p {
+    color: #FFFFFF !important;
     font-weight: 600 !important;
 }
 
-div.stPageLink a span {
-    color: inherit !important;
+section[data-testid="stSidebar"] div.stPageLink a:hover span,
+section[data-testid="stSidebar"] div.stPageLink a:hover [data-testid="stIconMaterial"] {
+    color: #38BDF8 !important;
+    transform: scale(1.08) !important;
+}
+
+/* Instant click feedback */
+section[data-testid="stSidebar"] div.stPageLink a:active {
+    background: #1D6FE8 !important;
+    border-color: #38BDF8 !important;
+    color: #FFFFFF !important;
+    transform: scale(0.98) !important;
+}
+
+/* Fallback Active State: Solid Cobalt Blue Pill with Glow & Crisp White Text */
+section[data-testid="stSidebar"] div.stPageLink a[aria-current="page"] {
+    background: #1D6FE8 !important;
+    background-color: #1D6FE8 !important;
+    border: 1px solid #38BDF8 !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 12px rgba(29, 111, 232, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    transform: none !important;
+}
+
+section[data-testid="stSidebar"] div.stPageLink a[aria-current="page"] p,
+section[data-testid="stSidebar"] div.stPageLink a[aria-current="page"] span,
+section[data-testid="stSidebar"] div.stPageLink a[aria-current="page"] [data-testid="stIconMaterial"] {
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+    fill: #FFFFFF !important;
+}
+
+section[data-testid="stSidebar"] div.stPageLink a[aria-current="page"]:hover {
+    background: #2563EB !important;
+    background-color: #2563EB !important;
+    border-color: #60A5FA !important;
+    color: #FFFFFF !important;
+    transform: none !important;
+    box-shadow: 0 4px 14px rgba(29, 111, 232, 0.65) !important;
 }
 
 /* Sidebar Action Buttons: Crisp sizing, no text clipping, perfectly balanced */

@@ -14,12 +14,12 @@ from data.demo_seed import seed_demo_data
 from ui.theme import icon_svg, ACCENT_BLUE, EYEBROW_BLUE, TEXT_PRIMARY, TEXT_MUTED
 
 NAV_ITEMS = [
-    {"label": "Investigation Overview", "icon": ":material/dashboard:", "file": "pages/1_Investigation_Overview.py", "id": "overview"},
-    {"label": "Evidence Ingestion", "icon": ":material/upload_file:", "file": "pages/2_Evidence_Ingestion.py", "id": "ingestion"},
-    {"label": "Attack Timeline", "icon": ":material/timeline:", "file": "pages/3_Attack_Timeline.py", "id": "timeline"},
-    {"label": "Provenance Graph", "icon": ":material/hub:", "file": "pages/4_Provenance_Graph.py", "id": "graph"},
-    {"label": "Evidence Explorer", "icon": ":material/manage_search:", "file": "pages/5_Evidence_Explorer.py", "id": "explorer"},
-    {"label": "Findings & Reports", "icon": ":material/description:", "file": "pages/6_Findings_and_Reports.py", "id": "reports"}
+    {"label": "Investigation Overview", "icon": ":material/dashboard:", "file": "pages/1_Investigation_Overview.py", "id": "overview", "match": "overview"},
+    {"label": "Evidence Ingestion", "icon": ":material/upload_file:", "file": "pages/2_Evidence_Ingestion.py", "id": "ingestion", "match": "ingestion"},
+    {"label": "Attack Timeline", "icon": ":material/timeline:", "file": "pages/3_Attack_Timeline.py", "id": "timeline", "match": "timeline"},
+    {"label": "Provenance Graph", "icon": ":material/hub:", "file": "pages/4_Provenance_Graph.py", "id": "graph", "match": "graph"},
+    {"label": "Evidence Explorer", "icon": ":material/manage_search:", "file": "pages/5_Evidence_Explorer.py", "id": "explorer", "match": "explorer"},
+    {"label": "Findings & Reports", "icon": ":material/description:", "file": "pages/6_Findings_and_Reports.py", "id": "reports", "match": "reports"}
 ]
 
 
@@ -74,9 +74,50 @@ def render_sidebar(current_page_id: str = "overview") -> str:
             unsafe_allow_html=True
         )
 
-        # 2. Workspace Navigation Section
+        # 2. Workspace Navigation Section with High-Contrast Active Indicator
         st.markdown(
             "<div style='margin-bottom: 2px; font-size: 9.5px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase;'>Workspace</div>",
+            unsafe_allow_html=True
+        )
+
+        active_item = next((item for item in NAV_ITEMS if item["id"] == current_page_id), NAV_ITEMS[0])
+        active_match = active_item.get("match", "overview")
+
+        # Inject high-visibility active workspace style targeting this specific page
+        st.markdown(
+            f"""
+            <style>
+            section[data-testid="stSidebar"] div.stPageLink a[href*="{active_match}" i] {{
+                background: #1D6FE8 !important;
+                background-color: #1D6FE8 !important;
+                border: 1px solid #38BDF8 !important;
+                border-left: 3px solid #38BDF8 !important;
+                color: #FFFFFF !important;
+                font-weight: 600 !important;
+                box-shadow: 0 2px 12px rgba(29, 111, 232, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+                transform: none !important;
+            }}
+            section[data-testid="stSidebar"] div.stPageLink a[href*="{active_match}" i] p {{
+                color: #FFFFFF !important;
+                font-weight: 600 !important;
+            }}
+            section[data-testid="stSidebar"] div.stPageLink a[href*="{active_match}" i] span,
+            section[data-testid="stSidebar"] div.stPageLink a[href*="{active_match}" i] [data-testid="stIconMaterial"] {{
+                color: #FFFFFF !important;
+                font-weight: 600 !important;
+                fill: #FFFFFF !important;
+            }}
+            section[data-testid="stSidebar"] div.stPageLink a[href*="{active_match}" i]:hover {{
+                background: #2563EB !important;
+                background-color: #2563EB !important;
+                border-color: #60A5FA !important;
+                border-left-color: #38BDF8 !important;
+                color: #FFFFFF !important;
+                transform: none !important;
+                box-shadow: 0 4px 14px rgba(29, 111, 232, 0.65) !important;
+            }}
+            </style>
+            """,
             unsafe_allow_html=True
         )
 
