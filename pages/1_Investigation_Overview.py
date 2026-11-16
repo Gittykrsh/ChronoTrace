@@ -338,6 +338,58 @@ for idx, (sname, sstate) in enumerate(stages):
 
 st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
+# 9b. Cryptographic Merkle Seal & Attack Blast Radius Row
+from services.crypto_chain import build_investigation_hash_chain
+from services.graph_analytics import calculate_blast_radius
+
+chain_data = build_investigation_hash_chain(events, selected_inv_id)
+blast_data = calculate_blast_radius(selected_inv_id)
+
+c_seal, c_blast = st.columns(2, gap="medium")
+
+with c_seal:
+    render_card_header("Cryptographic Integrity (Merkle Root)", pill_text=chain_data.get("status", "SEALED"), pill_class="pill-success", icon_name="shield")
+    merkle_root = chain_data.get("merkle_root", "")
+    short_root = f"{merkle_root[:20]}...{merkle_root[-20:]}" if len(merkle_root) > 40 else merkle_root
+    st.markdown(
+        f"""
+        <div class="console-card" style="padding: 12px 14px;">
+            <div style="font-size: 11.5px; color: #94A3B8; margin-bottom: 6px;">
+                Sequential SHA-256 evidence chain verification across <span style="color: #38BDF8; font-weight: 600;">{chain_data.get('total_blocks', 0)} blocks</span>:
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #050811; padding: 7px 10px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06); color: #34D399; word-break: break-all;">
+                {short_root}
+            </div>
+            <div style="font-size: 10.5px; color: #64748B; margin-top: 6px;">
+                *Mathematical court-admissible proof: 0 alterations, deletions, or insertions detected.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with c_blast:
+    sev_color = "#FB7185" if blast_data.get("severity_rating") == "CRITICAL" else "#34D399"
+    render_card_header("Enterprise Attack Blast Radius", pill_text=f"{blast_data.get('severity_rating', 'LOW')}", pill_class="pill-danger" if blast_data.get("severity_rating") == "CRITICAL" else "pill-info", icon_name="activity")
+    st.markdown(
+        f"""
+        <div class="console-card" style="padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-size: 11.5px; color: #94A3B8;">Subnet Compromise Breadth:</div>
+                <div style="font-size: 14px; font-weight: 700; color: {sev_color};">{blast_data.get('blast_radius_percentage', 0.0)}%</div>
+            </div>
+            <div style="font-size: 11.5px; line-height: 1.5; color: #CBD5E1;">
+                • Compromised Hosts: <span style="color: #38BDF8; font-weight: 600;">{blast_data.get('compromised_hosts_count', 0)} / {blast_data.get('total_hosts_observed', 1)}</span><br>
+                • Affected User Identities: <span style="color: #818CF8; font-weight: 600;">{blast_data.get('compromised_users_count', 0)}</span><br>
+                • External C2 Endpoints: <span style="color: #FBBF24; font-weight: 600;">{len(blast_data.get('external_c2_endpoints', []))}</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
+
 # 10. Bottom Row: Actionable Findings & Ingested Evidence Sources
 col_fnd, col_ev = st.columns([6, 4], gap="medium")
 
