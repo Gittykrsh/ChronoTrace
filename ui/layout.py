@@ -217,10 +217,10 @@ def render_sidebar(current_page_id: str = "overview") -> str:
                     st.session_state.pop(stale_key, None)
 
                 if is_curr_demo:
-                    st.toast("Demo baseline reset.", icon="↺")
+                    st.toast("Demo baseline reset.", icon="🔄")
                 else:
                     case_title = curr_meta['name'] if curr_meta else curr_id
-                    st.toast(f"'{case_title}' evidence reset to 0.", icon="↺")
+                    st.toast(f"'{case_title}' evidence reset to 0.", icon="🔄")
                 st.rerun()
 
         # 4. Connected Telemetry Status Card (Matching 'CONNECTED DEVICE' from screenshots)
