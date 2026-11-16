@@ -55,7 +55,7 @@ def render_sidebar(current_page_id: str = "overview") -> str:
         # 1. Top Brand Lockup (Shifted to absolute top flush with window and topbar)
         st.markdown(
             """
-            <div style="display: flex; align-items: center; gap: 9px; padding: 0px 32px 8px 0px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 8px; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 2px 4px 8px 2px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 8px; width: 100%;">
                 <div style="width: 30px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(29, 111, 232, 0.3);">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>

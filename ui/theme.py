@@ -147,18 +147,30 @@ code, pre, .mono-text, .raw-ref-pill, [data-testid="stCodeBlock"] code, .termina
 }
 
 /* Hide Streamlit Header Anchor Links and Clutter */
+header[data-testid="stHeader"],
+[data-testid="stHeader"],
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapseButton"],
+button[data-testid="stSidebarCollapseButton"],
+div[data-testid="stSidebarCollapseButton"],
+div[data-testid="stSidebarHeader"],
 [data-testid="stHeaderActionElements"],
 a.anchor-link,
 header[data-testid="stHeader"] .stDeployButton,
 header[data-testid="stHeader"] button[title="View app in Streamlit Community Cloud"],
+header[data-testid="stHeader"] button[data-testid="stBaseButton-header"],
 #MainMenu, footer {
     display: none !important;
-}
-
-header[data-testid="stHeader"] {
-    background: transparent !important;
-    height: 2.2rem !important;
-    z-index: 99 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0px !important;
+    min-height: 0px !important;
+    max-height: 0px !important;
+    width: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+    border: none !important;
+    overflow: hidden !important;
 }
 
 [data-testid="stSidebarNav"] {
@@ -196,39 +208,18 @@ header[data-testid="stHeader"] {
     background: rgba(56, 189, 248, 0.45);
 }
 
-/* 6. Desktop Console Sidebar (Width 268px, Non-scrollable fixed dock) */
-div[data-testid="stSidebarHeader"] {
+/* 6. Desktop Console Sidebar (Width 268px, Plain Fixed Dock without Arrow Controls) */
+div[data-testid="stSidebarHeader"],
+div[data-testid="stSidebarCollapseButton"],
+[data-testid="collapsedControl"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
     height: 0px !important;
-    min-height: 0px !important;
-    max-height: 0px !important;
-    padding: 0px !important;
+    width: 0px !important;
     margin: 0px !important;
-    position: relative !important;
+    padding: 0px !important;
     border: none !important;
-    background: transparent !important;
-}
-
-div[data-testid="stSidebarCollapseButton"] {
-    position: absolute !important;
-    top: 6px !important;
-    right: 8px !important;
-    z-index: 999 !important;
-}
-
-div[data-testid="stSidebarCollapseButton"] button {
-    background: transparent !important;
-    border: none !important;
-    color: #64748B !important;
-    padding: 2px !important;
-    height: 26px !important;
-    width: 26px !important;
-    transition: all 0.15s ease !important;
-}
-
-div[data-testid="stSidebarCollapseButton"] button:hover {
-    color: #38BDF8 !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-radius: 4px !important;
 }
 
 section[data-testid="stSidebar"] {
