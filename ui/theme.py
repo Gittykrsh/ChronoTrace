@@ -196,23 +196,82 @@ header[data-testid="stHeader"] {
     background: rgba(56, 189, 248, 0.45);
 }
 
-/* 6. Desktop Console Sidebar (Width 255px) */
+/* 6. Desktop Console Sidebar (Width 268px, Non-scrollable fixed dock) */
+div[data-testid="stSidebarHeader"] {
+    height: 0px !important;
+    min-height: 0px !important;
+    max-height: 0px !important;
+    padding: 0px !important;
+    margin: 0px !important;
+    position: relative !important;
+    border: none !important;
+    background: transparent !important;
+}
+
+div[data-testid="stSidebarCollapseButton"] {
+    position: absolute !important;
+    top: 6px !important;
+    right: 8px !important;
+    z-index: 999 !important;
+}
+
+div[data-testid="stSidebarCollapseButton"] button {
+    background: transparent !important;
+    border: none !important;
+    color: #64748B !important;
+    padding: 2px !important;
+    height: 26px !important;
+    width: 26px !important;
+    transition: all 0.15s ease !important;
+}
+
+div[data-testid="stSidebarCollapseButton"] button:hover {
+    color: #38BDF8 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 4px !important;
+}
+
 section[data-testid="stSidebar"] {
-    min-width: 255px !important;
-    max-width: 255px !important;
-    width: 255px !important;
+    min-width: 268px !important;
+    max-width: 268px !important;
+    width: 268px !important;
     background-color: #070B14 !important;
     border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+    height: 100vh !important;
 }
+
 section[data-testid="stSidebar"] > div {
-    width: 255px !important;
+    width: 268px !important;
+    overflow: hidden !important;
+    overflow-y: hidden !important;
 }
+
 [data-testid="stSidebarContent"] {
-    width: 255px !important;
-    padding-top: 0.6rem !important;
-    padding-left: 0.75rem !important;
-    padding-right: 0.75rem !important;
-    padding-bottom: 1.25rem !important;
+    width: 268px !important;
+    padding-top: 6px !important;
+    padding-left: 9px !important;
+    padding-right: 9px !important;
+    padding-bottom: 8px !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+}
+
+/* Completely remove any sidebar scrollbar and scroll behavior */
+section[data-testid="stSidebar"] ::-webkit-scrollbar,
+[data-testid="stSidebarContent"]::-webkit-scrollbar,
+section[data-testid="stSidebar"] *::-webkit-scrollbar {
+    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
+}
+
+/* Compact spacing for sidebar elements to fit effortlessly in viewport */
+[data-testid="stSidebarContent"] .stElementContainer {
+    margin-bottom: 3px !important;
 }
 
 /* Flat Navigation Links: Inactive has NO background box and NO border */
@@ -220,16 +279,16 @@ div.stPageLink a {
     background: transparent !important;
     border: 1px solid transparent !important;
     border-radius: 6px !important;
-    padding: 7px 10px !important;
+    padding: 5px 8px !important;
     color: #94A3B8 !important;
     font-weight: 500 !important;
-    font-size: 0.82rem !important;
+    font-size: 0.81rem !important;
     display: flex !important;
     align-items: center !important;
-    gap: 9px !important;
+    gap: 8px !important;
     text-decoration: none !important;
     transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 1px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
@@ -253,21 +312,24 @@ div.stPageLink a span {
     color: inherit !important;
 }
 
-/* Sidebar Action Buttons with Smooth Hover Animation */
+/* Sidebar Action Buttons: Crisp sizing, no text clipping, perfectly balanced */
 section[data-testid="stSidebar"] .stButton > button {
     white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    padding: 6px 10px !important;
-    font-size: 0.76rem !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    padding: 4px 6px !important;
+    font-size: 0.74rem !important;
     font-weight: 500 !important;
-    height: 34px !important;
-    min-height: 34px !important;
+    height: 32px !important;
+    min-height: 32px !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     background: #0D1526 !important;
     color: #F8FAFC !important;
     border-radius: 6px !important;
     transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
     background: #131D31 !important;

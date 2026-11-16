@@ -50,22 +50,22 @@ else:
 
 
 def render_sidebar(current_page_id: str = "overview") -> str:
-    """Renders flat borderless 255px desktop console sidebar."""
+    """Renders flat borderless 268px desktop console sidebar (fixed non-scrolling dock)."""
     with st.sidebar:
-        # 1. Top Brand Lockup (Matches reference software header)
+        # 1. Top Brand Lockup (Shifted to absolute top flush with window and topbar)
         st.markdown(
             """
-            <div style="display: flex; align-items: center; gap: 10px; padding: 2px 2px 14px 2px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 12px; width: 100%;">
-                <div style="width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(29, 111, 232, 0.3);">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 0px 32px 8px 0px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 8px; width: 100%;">
+                <div style="width: 30px; height: 30px; border-radius: 6px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(29, 111, 232, 0.3);">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                 </div>
                 <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0; flex: 1; overflow: hidden;">
-                    <div style="font-family: 'Inter', sans-serif; font-size: 14.5px; font-weight: 700; color: #F8FAFC; letter-spacing: -0.01em; line-height: 1.1; white-space: nowrap;">
+                    <div style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: #F8FAFC; letter-spacing: -0.01em; line-height: 1.1; white-space: nowrap;">
                         Chrono<span style="color: #38BDF8;">Trace</span>
                     </div>
-                    <div style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; margin-top: 1px; text-transform: uppercase; white-space: nowrap;">
+                    <div style="font-family: 'Inter', sans-serif; font-size: 9.5px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; margin-top: 1px; text-transform: uppercase; white-space: nowrap;">
                         DFIR CONSOLE v1.0.0
                     </div>
                 </div>
@@ -76,7 +76,7 @@ def render_sidebar(current_page_id: str = "overview") -> str:
 
         # 2. Workspace Navigation Section
         st.markdown(
-            "<div style='margin-bottom: 4px; font-size: 10px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase;'>Workspace</div>",
+            "<div style='margin-bottom: 2px; font-size: 9.5px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase;'>Workspace</div>",
             unsafe_allow_html=True
         )
 
@@ -88,11 +88,11 @@ def render_sidebar(current_page_id: str = "overview") -> str:
                 use_container_width=True
             )
 
-        st.markdown("<hr style='margin: 12px 0; border-color: rgba(255, 255, 255, 0.06);'/>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin: 8px 0; border-color: rgba(255, 255, 255, 0.06);'/>", unsafe_allow_html=True)
 
         # 3. Case & Engine Management Section
         st.markdown(
-            "<div style='margin-bottom: 4px; font-size: 10px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase;'>Case & Engine</div>",
+            "<div style='margin-bottom: 2px; font-size: 9.5px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase;'>Case & Engine</div>",
             unsafe_allow_html=True
         )
 
@@ -116,8 +116,8 @@ def render_sidebar(current_page_id: str = "overview") -> str:
         )
         st.session_state["active_investigation_id"] = selected_id
 
-        # Clean single-line action buttons with smooth hover
-        col_new, col_rst = st.columns([1, 1], gap="small")
+        # Clean single-line action buttons with prioritized ratio so Reset Demo never clips
+        col_new, col_rst = st.columns([0.82, 1.18], gap="small")
         with col_new:
             if hasattr(st, "dialog"):
                 if st.button("+ New Case", key="sb_btn_new_case", use_container_width=True):
@@ -152,18 +152,18 @@ def render_sidebar(current_page_id: str = "overview") -> str:
 
         st.markdown(
             f"""
-            <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 6px; padding: 10px 12px; margin-top: 14px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                    <span style="font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em;">CONNECTED TELEMETRY</span>
-                    <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #34D399; font-weight: 600;">
+            <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 6px; padding: 8px 10px; margin-top: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+                    <span style="font-size: 9.5px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em;">CONNECTED TELEMETRY</span>
+                    <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 9.5px; color: #34D399; font-weight: 600;">
                         <span class="pulsing-dot" style="background: #34D399;"></span>
                         {'DEMO' if is_demo else 'LIVE'}
                     </span>
                 </div>
-                <div style="font-size: 12px; font-weight: 600; color: #F8FAFC; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <div style="font-size: 11.5px; font-weight: 600; color: #F8FAFC; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     {inv_name}
                 </div>
-                <div style="font-size: 10.5px; color: #64748B; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">
+                <div style="font-size: 10px; color: #64748B; margin-top: 2px; font-family: 'JetBrains Mono', monospace;">
                     Sysmon • WinSec • Rule 0
                 </div>
             </div>
