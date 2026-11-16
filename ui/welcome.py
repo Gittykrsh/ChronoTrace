@@ -2,11 +2,12 @@
 
 Features:
 - High-impact cybersecurity operations center aesthetic (CrowdStrike / Palantir Gotham design)
-- Full-bleed expansive layout covering the entire web page (wide modern console view)
+- Full-bleed expansive layout covering the entire web page
 - 4-Stat forensic metrics ribbon & 2x2 responsive architecture capability grid
 - Live terminal subsystem status stream
 - Single, authentic 'Continue with Google' button with official 4-color Google SVG icon and crisp dark typography
-- Enterprise Sign In and Create Account (Sign Up) tabs with clean inputs
+- Native Streamlit container-wrapped authentication portal (no DOM splitting or tag leakage)
+- Enterprise Sign In and Create Account tabs with clean inputs
 - One-Click Demo Analyst Access for instant evaluation
 - Seamless st.switch_page navigation directly to pages/1_Investigation_Overview.py
 - Full-width SOC compliance and audit footer
@@ -14,20 +15,23 @@ Features:
 
 import streamlit as st
 from datetime import datetime, timezone
-import time
-from database.db import create_or_update_user, get_user_by_email, init_db
+from database.db import create_or_update_user, init_db
 from data.demo_seed import seed_demo_data
 from ui.theme import (
     inject_theme,
     icon_svg,
     ACCENT_BLUE,
-    EYEBROW_BLUE,
     STATUS_SUCCESS_TEXT,
-    STATUS_WARN_TEXT,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     TEXT_MUTED
 )
+
+
+def render_html(content: str) -> None:
+    """Renders HTML safely in Streamlit, stripping all indentation and blank lines to prevent Markdown code block artifacts."""
+    clean = "\n".join(line.strip() for line in content.strip().splitlines() if line.strip())
+    st.markdown(clean, unsafe_allow_html=True)
 
 
 def render_welcome_portal() -> None:
@@ -42,7 +46,7 @@ def render_welcome_portal() -> None:
     init_db()
 
     # Hide sidebar completely on the Welcome / Login screen for a clean, full-screen portal
-    st.markdown(
+    render_html(
         """
         <style>
         section[data-testid="stSidebar"] {
@@ -93,16 +97,15 @@ def render_welcome_portal() -> None:
             -webkit-text-fill-color: #111827 !important;
         }
         </style>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
     # 1. Top SOC Command Header Bar (Full Width)
-    st.markdown(
+    render_html(
         f"""
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); width: 100%;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); width: 100%;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(29, 111, 232, 0.4);">
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -131,8 +134,7 @@ def render_welcome_portal() -> None:
                 </span>
             </div>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )
 
     # 2. Main Expanded Hero & Authentication Grid
@@ -140,56 +142,54 @@ def render_welcome_portal() -> None:
 
     # LEFT COLUMN: Value Proposition, Metrics Ribbon, 2x2 Capabilities & Live Status
     with col_hero:
-        st.markdown(
+        render_html(
             """
             <div style="padding-right: 8px;">
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(29, 111, 232, 0.16); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px; font-size: 11.5px; font-weight: 600; color: #38BDF8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px;">
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(29, 111, 232, 0.16); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px; font-size: 11.5px; font-weight: 600; color: #38BDF8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">
                     <span class="pulsing-dot" style="background: #38BDF8;"></span>
                     MISSION-CRITICAL DFIR INVESTIGATION PLATFORM
                 </div>
-                <h1 style="font-size: 2.75rem; font-weight: 800; color: #F8FAFC; line-height: 1.15; letter-spacing: -0.025em; margin-bottom: 12px;">
+                <h1 style="font-size: 2.65rem; font-weight: 800; color: #F8FAFC; line-height: 1.15; letter-spacing: -0.025em; margin-bottom: 12px;">
                     Reconstruct Cyberattacks with <br>
                     <span style="background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #34D399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                         Deterministic Certainty & Proof
                     </span>
                 </h1>
-                <p style="font-size: 1.02rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
+                <p style="font-size: 1.02rem; color: #94A3B8; line-height: 1.6; margin-bottom: 18px;">
                     ChronoTrace transforms ambiguous Windows Event Logs and Sysmon telemetry into deterministic, evidence-backed attack timelines. Built for SOC analysts, incident response teams, and forensic engineers demanding mathematical proof.
                 </p>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         # 4-Stat Metrics Ribbon (Spans the width of the left column)
-        st.markdown(
+        render_html(
             """
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
-                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px;">
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left;">
                     <div style="font-size: 22px; font-weight: 800; color: #38BDF8; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">100%</div>
                     <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Rule 0 Byte Traceability</div>
                 </div>
-                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left;">
                     <div style="font-size: 22px; font-weight: 800; color: #34D399; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">0.00</div>
                     <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Black-Box Hallucinations</div>
                 </div>
-                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left;">
                     <div style="font-size: 18px; font-weight: 800; color: #818CF8; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">[ts_s, ts_e]</div>
                     <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Interval Uncertainty</div>
                 </div>
-                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left;">
                     <div style="font-size: 22px; font-weight: 800; color: #FBBF24; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">4-Factor</div>
                     <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Deterministic Score</div>
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
-        # 4 Core Forensic Pillars in a Modern 2x2 Grid
-        st.markdown(
+        # 4 Core Forensic Pillars in a Modern 2x2 Grid (Rendered cleanly via render_html with zero empty lines)
+        render_html(
             f"""
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px;">
                 <div class="hero-value-prop" style="margin-bottom: 0;">
                     <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         {icon_svg("file", size=18, color="#38BDF8")}
@@ -199,7 +199,6 @@ def render_welcome_portal() -> None:
                         <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.45;">Every reconstructed event & finding maintains an unalterable citation (e.g. <code>sysmon_victim_pc01.evtx#104</code>) back to raw bytes.</div>
                     </div>
                 </div>
-
                 <div class="hero-value-prop" style="margin-bottom: 0;">
                     <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(129, 140, 248, 0.12); border: 1px solid rgba(129, 140, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         {icon_svg("timeline", size=18, color="#818CF8")}
@@ -209,7 +208,6 @@ def render_welcome_portal() -> None:
                         <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.45;">Preserves ambiguous event windows <code>[ts_start_utc, ts_end_utc]</code> on interactive Gantt timelines without forcing false linear point timestamps.</div>
                     </div>
                 </div>
-
                 <div class="hero-value-prop" style="margin-bottom: 0;">
                     <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         {icon_svg("shield", size=18, color="#34D399")}
@@ -219,7 +217,6 @@ def render_welcome_portal() -> None:
                         <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.45;">Audited formula combining Corroboration, Source Reliability, Time Precision, and Link Strength &mdash; zero hallucinations.</div>
                     </div>
                 </div>
-
                 <div class="hero-value-prop" style="margin-bottom: 0;">
                     <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         {icon_svg("graph", size=18, color="#FBBF24")}
@@ -230,12 +227,11 @@ def render_welcome_portal() -> None:
                     </div>
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
         # Live Subsystem Status Terminal Box
-        st.markdown(
+        render_html(
             """
             <div style="background: #050811; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #94A3B8; line-height: 1.65;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 6px;">
@@ -246,159 +242,154 @@ def render_welcome_portal() -> None:
                 <div><span style="color: #64748B;">[STORAGE]</span> Local SQLite WAL Mode &bull; Zero Cloud Telemetry Leakage &bull; Rule 0 Enforced</div>
                 <div><span style="color: #64748B;">[MODULES]</span> 6 Forensics Workspaces Mounted &bull; Ready for Evidence Ingestion</div>
             </div>
-            """,
-            unsafe_allow_html=True
+            """
         )
 
-    # RIGHT COLUMN: Modern Glassmorphic Authentication Card
+    # RIGHT COLUMN: Modern Glassmorphic Authentication Card (Using native st.container with key)
     with col_auth:
-        st.markdown(
-            """
-            <div class="welcome-card-glass" style="padding: 28px 30px;">
+        with st.container(key="auth_portal_card", border=True):
+            render_html(
+                """
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                     <div style="font-size: 18px; font-weight: 700; color: #F8FAFC;">Investigator Access Portal</div>
                     <span class="status-pill pill-primary" style="font-size: 10px; padding: 3px 10px;">DEFENSE-GRADE SSO</span>
                 </div>
-                <p style="font-size: 12px; color: #94A3B8; margin-bottom: 18px; line-height: 1.5;">
+                <p style="font-size: 12px; color: #94A3B8; margin-bottom: 16px; line-height: 1.5;">
                     Sign in with your Google workspace identity or enterprise credentials to access active forensic investigations.
                 </p>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # 1. Official Single Google Sign-In Button (Real Streamlit Button with official Google Branding)
-        if st.button("Continue with Google", key="btn_auth_google", use_container_width=True):
-            google_user = create_or_update_user(
-                email="vellax.security@gmail.com",
-                name="Vellax (Google Workspace)",
-                provider="google",
-                agency="Cyber Defense Operations",
-                clearance_level="L3 Lead Forensic Specialist",
-                avatar_url="https://lh3.googleusercontent.com/a/default-user"
-            )
-            seed_demo_data()
-            st.session_state["authenticated"] = True
-            st.session_state["user_profile"] = google_user
-            st.session_state["active_investigation_id"] = "inv-demo-01"
-            st.switch_page("pages/1_Investigation_Overview.py")
-
-        st.markdown(
-            """
-            <div class="auth-divider">
-                <span>OR ENTERPRISE CREDENTIALS</span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # 2. Tabs: Sign In / Create Account
-        tab_login, tab_signup = st.tabs(["Sign In", "Create Account"])
-
-        with tab_login:
-            login_email = st.text_input(
-                "Work Email",
-                value="analyst@chronotrace.soc",
-                placeholder="analyst@agency.soc",
-                key="input_login_email"
-            )
-            login_pwd = st.text_input(
-                "Security Passkey",
-                type="password",
-                placeholder="Enter enterprise passphrase",
-                key="input_login_password"
-            )
-            login_clearance = st.selectbox(
-                "Active Clearance Level",
-                options=["L3 Lead Forensic Specialist", "L2 Incident Responder", "L1 Triage Analyst"],
-                index=0,
-                key="input_login_clearance"
+                """
             )
 
-            if st.button("Sign In to SOC Console", key="btn_submit_signin", type="primary", use_container_width=True):
-                if login_email.strip():
-                    user_data = create_or_update_user(
-                        email=login_email.strip().lower(),
-                        name=login_email.split("@")[0].replace(".", " ").title(),
-                        provider="local",
-                        agency="Cyber Defense Command",
-                        clearance_level=login_clearance
-                    )
-                    seed_demo_data()
-                    st.session_state["authenticated"] = True
-                    st.session_state["user_profile"] = user_data
-                    st.session_state["active_investigation_id"] = "inv-demo-01"
-                    st.switch_page("pages/1_Investigation_Overview.py")
-                else:
-                    st.error("Please provide a valid work email.")
+            # 1. Official Single Google Sign-In Button (Real Streamlit Button with official Google Branding)
+            if st.button("Continue with Google", key="btn_auth_google", use_container_width=True):
+                google_user = create_or_update_user(
+                    email="vellax.security@gmail.com",
+                    name="Vellax (Google Workspace)",
+                    provider="google",
+                    agency="Cyber Defense Operations",
+                    clearance_level="L3 Lead Forensic Specialist",
+                    avatar_url="https://lh3.googleusercontent.com/a/default-user"
+                )
+                seed_demo_data()
+                st.session_state["authenticated"] = True
+                st.session_state["user_profile"] = google_user
+                st.session_state["active_investigation_id"] = "inv-demo-01"
+                st.switch_page("pages/1_Investigation_Overview.py")
 
-        with tab_signup:
-            new_name = st.text_input("Full Name", placeholder="e.g. Detective John Doe", key="input_signup_name")
-            new_agency = st.text_input("Forensic Agency / Department", placeholder="e.g. State Cyber Bureau", key="input_signup_agency")
-            new_email = st.text_input("Work Email Address", placeholder="name@agency.soc", key="input_signup_email")
-            new_pwd = st.text_input("Create Security Passkey", type="password", placeholder="Minimum 12 characters", key="input_signup_pwd")
-            new_clearance = st.selectbox(
-                "Requested Clearance Level",
-                options=["L2 Incident Responder", "L3 Lead Forensic Specialist", "L1 Triage Analyst"],
-                index=0,
-                key="input_signup_clearance"
+            render_html(
+                """
+                <div class="auth-divider">
+                    <span>OR ENTERPRISE CREDENTIALS</span>
+                </div>
+                """
             )
 
-            if st.button("Create Forensic Account", key="btn_submit_signup", type="primary", use_container_width=True):
-                if new_name.strip() and new_email.strip():
-                    created_user = create_or_update_user(
-                        email=new_email.strip().lower(),
-                        name=new_name.strip(),
-                        provider="local",
-                        agency=new_agency.strip() or "DFIR Operations",
-                        clearance_level=new_clearance
-                    )
-                    seed_demo_data()
-                    st.session_state["authenticated"] = True
-                    st.session_state["user_profile"] = created_user
-                    st.session_state["active_investigation_id"] = "inv-demo-01"
-                    st.switch_page("pages/1_Investigation_Overview.py")
-                else:
-                    st.error("Full Name and Work Email are required for registration.")
+            # 2. Tabs: Sign In / Create Account
+            tab_login, tab_signup = st.tabs(["Sign In", "Create Account"])
 
-        st.markdown("<hr style='margin: 16px 0 14px 0; border-color: rgba(255, 255, 255, 0.08);'/>", unsafe_allow_html=True)
+            with tab_login:
+                login_email = st.text_input(
+                    "Work Email",
+                    value="analyst@chronotrace.soc",
+                    placeholder="analyst@agency.soc",
+                    key="input_login_email"
+                )
+                login_pwd = st.text_input(
+                    "Security Passkey",
+                    type="password",
+                    placeholder="Enter enterprise passphrase",
+                    key="input_login_password"
+                )
+                login_clearance = st.selectbox(
+                    "Active Clearance Level",
+                    options=["L3 Lead Forensic Specialist", "L2 Incident Responder", "L1 Triage Analyst"],
+                    index=0,
+                    key="input_login_clearance"
+                )
 
-        # 3. One-Click Instant Demo Access (Bypass)
-        if st.button("⚡ One-Click Demo Analyst Access (Instant Evaluation)", key="btn_quick_demo_access", use_container_width=True):
-            demo_user = create_or_update_user(
-                email="lead.analyst@chronotrace.soc",
-                name="Demo Forensic Analyst",
-                provider="demo",
-                agency="Incident Response Team Alpha",
-                clearance_level="L3 Lead Forensic Specialist"
+                if st.button("Sign In to SOC Console", key="btn_submit_signin", type="primary", use_container_width=True):
+                    if login_email.strip():
+                        user_data = create_or_update_user(
+                            email=login_email.strip().lower(),
+                            name=login_email.split("@")[0].replace(".", " ").title(),
+                            provider="local",
+                            agency="Cyber Defense Command",
+                            clearance_level=login_clearance
+                        )
+                        seed_demo_data()
+                        st.session_state["authenticated"] = True
+                        st.session_state["user_profile"] = user_data
+                        st.session_state["active_investigation_id"] = "inv-demo-01"
+                        st.switch_page("pages/1_Investigation_Overview.py")
+                    else:
+                        st.error("Please provide a valid work email.")
+
+            with tab_signup:
+                new_name = st.text_input("Full Name", placeholder="e.g. Detective John Doe", key="input_signup_name")
+                new_agency = st.text_input("Forensic Agency / Department", placeholder="e.g. State Cyber Bureau", key="input_signup_agency")
+                new_email = st.text_input("Work Email Address", placeholder="name@agency.soc", key="input_signup_email")
+                new_pwd = st.text_input("Create Security Passkey", type="password", placeholder="Minimum 12 characters", key="input_signup_pwd")
+                new_clearance = st.selectbox(
+                    "Requested Clearance Level",
+                    options=["L2 Incident Responder", "L3 Lead Forensic Specialist", "L1 Triage Analyst"],
+                    index=0,
+                    key="input_signup_clearance"
+                )
+
+                if st.button("Create Forensic Account", key="btn_submit_signup", type="primary", use_container_width=True):
+                    if new_name.strip() and new_email.strip():
+                        created_user = create_or_update_user(
+                            email=new_email.strip().lower(),
+                            name=new_name.strip(),
+                            provider="local",
+                            agency=new_agency.strip() or "DFIR Operations",
+                            clearance_level=new_clearance
+                        )
+                        seed_demo_data()
+                        st.session_state["authenticated"] = True
+                        st.session_state["user_profile"] = created_user
+                        st.session_state["active_investigation_id"] = "inv-demo-01"
+                        st.switch_page("pages/1_Investigation_Overview.py")
+                    else:
+                        st.error("Full Name and Work Email are required for registration.")
+
+            render_html("<hr style='margin: 14px 0 12px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.08);'/>")
+
+            # 3. One-Click Instant Demo Access (Bypass)
+            if st.button("⚡ One-Click Demo Analyst Access (Instant Evaluation)", key="btn_quick_demo_access", use_container_width=True):
+                demo_user = create_or_update_user(
+                    email="lead.analyst@chronotrace.soc",
+                    name="Demo Forensic Analyst",
+                    provider="demo",
+                    agency="Incident Response Team Alpha",
+                    clearance_level="L3 Lead Forensic Specialist"
+                )
+                seed_demo_data()
+                st.session_state["authenticated"] = True
+                st.session_state["user_profile"] = demo_user
+                st.session_state["active_investigation_id"] = "inv-demo-01"
+                st.switch_page("pages/1_Investigation_Overview.py")
+
+            render_html(
+                """
+                <div style="font-size: 10.5px; color: #64748B; text-align: center; margin-top: 12px; line-height: 1.45;">
+                    Protected by ChronoTrace Forensic Security Controls.<br>
+                    All session activities and queries are logged to immutable SQLite WAL audit storage.
+                </div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 10.5px; color: #64748B;">
+                    <span>🛡️ SOC 2 Type II</span>
+                    <span>•</span>
+                    <span>🔒 FIPS 140-3 Cryptography</span>
+                    <span>•</span>
+                    <span>📋 NIST SP 800-86</span>
+                </div>
+                """
             )
-            seed_demo_data()
-            st.session_state["authenticated"] = True
-            st.session_state["user_profile"] = demo_user
-            st.session_state["active_investigation_id"] = "inv-demo-01"
-            st.switch_page("pages/1_Investigation_Overview.py")
-
-        st.markdown(
-            """
-            <div style="font-size: 10.5px; color: #64748B; text-align: center; margin-top: 14px; line-height: 1.45;">
-                Protected by ChronoTrace Forensic Security Controls.<br>
-                All session activities and queries are logged to immutable SQLite WAL audit storage.
-            </div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 10.5px; color: #64748B;">
-                <span>🛡️ SOC 2 Type II</span>
-                <span>•</span>
-                <span>🔒 FIPS 140-3 Cryptography</span>
-                <span>•</span>
-                <span>📋 NIST SP 800-86</span>
-            </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
 
     # 3. Full-Width Bottom Status Strip (Spans full page width)
-    st.markdown(
+    render_html(
         """
-        <div style="margin-top: 24px; padding: 12px 24px; background: #070B14; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #64748B; width: 100%;">
+        <div style="margin-top: 20px; padding: 12px 24px; background: #070B14; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #64748B; width: 100%;">
             <div style="display: flex; align-items: center; gap: 16px;">
                 <span><strong style="color: #94A3B8;">ChronoTrace DFIR Platform</strong> v1.0.0-PROD</span>
                 <span>•</span>
@@ -415,6 +406,5 @@ def render_welcome_portal() -> None:
                 </span>
             </div>
         </div>
-        """,
-        unsafe_allow_html=True
+        """
     )

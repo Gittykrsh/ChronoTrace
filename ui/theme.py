@@ -907,16 +907,20 @@ div[data-testid="InputInstructions"],
     z-index: 1;
 }
 
-.welcome-card-glass {
-    background: rgba(13, 21, 38, 0.88) !important;
+.welcome-card-glass,
+div[data-testid="stVerticalBlockBorderWrapper"].st-key-auth_portal_card,
+div.st-key-auth_portal_card {
+    background: rgba(13, 21, 38, 0.92) !important;
     backdrop-filter: blur(20px) !important;
     border: 1px solid rgba(56, 189, 248, 0.22) !important;
     border-radius: 12px !important;
-    padding: 28px !important;
+    padding: 24px 28px !important;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 25px rgba(29, 111, 232, 0.14) !important;
     transition: all 0.25s ease !important;
 }
-.welcome-card-glass:hover {
+.welcome-card-glass:hover,
+div[data-testid="stVerticalBlockBorderWrapper"].st-key-auth_portal_card:hover,
+div.st-key-auth_portal_card:hover {
     border-color: rgba(56, 189, 248, 0.4) !important;
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(29, 111, 232, 0.22) !important;
 }
