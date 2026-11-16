@@ -93,14 +93,163 @@ st.markdown(
 col_upload, col_scope = st.columns([6, 4], gap="medium")
 
 with col_upload:
-    render_card_header("Upload Forensic Log Files", pill_text="BINARY / JSON", pill_class="pill-info", icon_name="upload")
-    uploaded_files = st.file_uploader(
-        "Select Windows .evtx or structured .json log files:",
-        type=["evtx", "json"],
-        accept_multiple_files=True,
-        help="Upload authentic forensic .evtx dumps or exported event JSON files.",
-        label_visibility="collapsed"
-    )
+    render_card_header("Forensic Evidence Sources", pill_text="BINARY / JSON", pill_class="pill-info", icon_name="upload")
+
+    ingest_tabs = st.tabs(["🛡️ Safe Incident Datasets (1-Click)", "📁 Upload Custom Files (.evtx / .json)"])
+
+    with ingest_tabs[0]:
+        st.markdown(
+            """
+            <div style="font-size: 12.5px; color: #94A3B8; margin-bottom: 12px; line-height: 1.5;">
+                Select from verified, 100% clean incident telemetry datasets included with ChronoTrace.
+                <span style="color: #38BDF8; font-weight: 500;">Guaranteed safe & virus-scanner clean</span> (no external downloads or antivirus false-positives).
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        scenario_choice = st.selectbox(
+            "Select Pre-verified Forensic Scenario:",
+            [
+                "APT Intrusion & Anti-Forensics (Sysmon + Security Auditing - 18 Events)",
+                "Enterprise Discovery & C2 Lateral Movement (Workstation Telemetry - 8 Events)"
+            ],
+            index=0,
+            key="preset_scenario_select"
+        )
+
+        if "APT Intrusion" in scenario_choice:
+            scenario_path = os.path.join(PROJECT_ROOT, "data", "sample_events.json")
+            scenario_name = "apt_operation_chimera.json"
+            scenario_desc = "Simulates full kill-chain: PowerShell execution (T1059.001), C2 beaconing (T1071.001), payload drops (T1105), and Event 1102 anti-forensics log clearing."
+        else:
+            scenario_path = os.path.join(PROJECT_ROOT, "data", "enterprise_clean_scenario.json")
+            scenario_name = "enterprise_discovery_c2.json"
+            scenario_desc = "Simulates host discovery via whoami /all (T1033), certutil ingress transfer (T1105), background service execution (T1059), and audit log clear (T1070.001)."
+
+        st.caption(f"Scenario Focus: {scenario_desc}")
+
+        c_p_btn, c_p_dl = st.columns([6, 4])
+        with c_p_btn:
+            run_preset = st.button("⚡ Ingest Selected Safe Scenario", type="primary", use_container_width=True, key="btn_run_preset")
+        with c_p_dl:
+            if os.path.exists(scenario_path):
+                with open(scenario_path, "rb") as pf:
+                    st.download_button(
+                        label="📥 Download Clean JSON",
+                        data=pf.read(),
+                        file_name=scenario_name,
+                        mime="application/json",
+                        use_container_width=True,
+                        help="Download this clean forensic dataset to your PC for manual testing."
+                    )
+
+        if run_preset:
+            with open(scenario_path, "rb") as pf:
+                preset_bytes = pf.read()
+            file_bytes_map = {scenario_name: preset_bytes}
+            with st.status("Executing ChronoTrace Forensic Processing Pipeline...", expanded=True) as status:
+                st.write("[Stage 1/7] Validating binary headers and file schema constraints...")
+                st.write("[Stage 2/7] Extracting EVTX records / JSON structures into raw storage...")
+                st.write("[Stage 3/7] Committing raw evidence with immutable raw_ref citations...")
+                st.write("[Stage 4/7] Normalizing timestamps to UTC intervals [ts_start, ts_end]...")
+                st.write("[Stage 5/7] Executing entity resolution and building NetworkX provenance graph...")
+                st.write("[Stage 6/7] Calculating 4-factor confidence metrics and evaluating conflict rules...")
+                st.write("[Stage 7/7] Reconstructing attack timeline, MITRE ATT&CK stages, and findings...")
+
+                summary = run_ingestion_pipeline(selected_inv_id, file_bytes_map)
+                status.update(label="Forensic Ingestion Pipeline Completed Successfully", state="complete", expanded=False)
+
+            st.success(f"Processing complete: {summary['supported_events_normalized']} events normalized into active case '{selected_inv_id}'.")
+
+            # Show summary metrics
+            st.markdown("<div style='font-size: 13px; font-weight: 600; color: #F8FAFC; margin: 12px 0 6px 0;'>Ingestion Summary</div>", unsafe_allow_html=True)
+            s1, s2, s3, s4 = st.columns(4)
+            with s1:
+                st.metric("Files Processed", summary["files_processed"])
+                st.metric("Parsing Errors", summary["parsing_errors"])
+            with s2:
+                st.metric("Raw Records Parsed", summary["raw_records_parsed"])
+                st.metric("Missing Fields", summary["missing_required_fields"])
+            with s3:
+                st.metric("Supported Normalized", summary["supported_events_normalized"])
+                st.metric("Invalid Timestamps", summary["invalid_timestamps"])
+            with s4:
+                st.metric("Unsupported Records", summary["unsupported_records"])
+                st.metric("Stages Completed", len(summary["stages_completed"]))
+
+    with ingest_tabs[1]:
+        st.markdown(
+            f"""
+            <div style="font-size: 12px; color: #94A3B8; margin-bottom: 8px;">
+                Drag & drop your own forensic <code>.evtx</code> dumps or <code>.json</code> logs.<br>
+                <span style="color: #64748B;">Local clean file ready on disk: <code>{os.path.join(PROJECT_ROOT, 'data', 'sample_events.json')}</code></span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        uploaded_files = st.file_uploader(
+            "Select Windows .evtx or structured .json log files:",
+            type=["evtx", "json"],
+            accept_multiple_files=True,
+            help="Upload authentic forensic .evtx dumps or exported event JSON files.",
+            label_visibility="collapsed",
+            key="custom_file_uploader"
+        )
+
+        if uploaded_files:
+            st.markdown("<div style='font-size: 13px; font-weight: 600; color: #F8FAFC; margin: 12px 0 6px 0;'>Selected Files for Ingestion:</div>", unsafe_allow_html=True)
+            file_info = []
+            file_bytes_map = {}
+            for f in uploaded_files:
+                size_kb = len(f.getvalue()) / 1024
+                file_info.append({
+                    "Filename": f.name,
+                    "Format": f.name.split(".")[-1].upper(),
+                    "Size": f"{size_kb:.2f} KB",
+                    "Status": "Ready for Processing"
+                })
+                file_bytes_map[f.name] = f.getvalue()
+
+            df_files = pd.DataFrame(file_info)
+            st.dataframe(df_files, use_container_width=True, hide_index=True, height=calc_df_height(df_files, min_h=80, max_h=200))
+
+            c_btn, c_note = st.columns([3, 7])
+            with c_btn:
+                start_ingest = st.button("Start Forensic Ingestion", type="primary", use_container_width=True, key="btn_start_custom_ingest")
+            with c_note:
+                st.caption("Verification: Enforces non-empty raw_ref and UTC normalization across all ingested records.")
+
+            if start_ingest:
+                with st.status("Executing ChronoTrace Forensic Processing Pipeline...", expanded=True) as status:
+                    st.write("[Stage 1/7] Validating binary headers and file schema constraints...")
+                    st.write("[Stage 2/7] Extracting EVTX records / JSON structures into raw storage...")
+                    st.write("[Stage 3/7] Committing raw evidence with immutable raw_ref citations...")
+                    st.write("[Stage 4/7] Normalizing timestamps to UTC intervals [ts_start, ts_end]...")
+                    st.write("[Stage 5/7] Executing entity resolution and building NetworkX provenance graph...")
+                    st.write("[Stage 6/7] Calculating 4-factor confidence metrics and evaluating conflict rules...")
+                    st.write("[Stage 7/7] Reconstructing attack timeline, MITRE ATT&CK stages, and findings...")
+
+                    summary = run_ingestion_pipeline(selected_inv_id, file_bytes_map)
+                    status.update(label="Forensic Ingestion Pipeline Completed Successfully", state="complete", expanded=False)
+
+                st.success(f"Processing complete: {summary['supported_events_normalized']} events normalized into active case.")
+
+                # Ingestion Summary Metrics Row
+                st.markdown("<div style='font-size: 13px; font-weight: 600; color: #F8FAFC; margin: 12px 0 6px 0;'>Ingestion Summary</div>", unsafe_allow_html=True)
+                s1, s2, s3, s4 = st.columns(4)
+                with s1:
+                    st.metric("Files Processed", summary["files_processed"])
+                    st.metric("Parsing Errors", summary["parsing_errors"])
+                with s2:
+                    st.metric("Raw Records Parsed", summary["raw_records_parsed"])
+                    st.metric("Missing Fields", summary["missing_required_fields"])
+                with s3:
+                    st.metric("Supported Normalized", summary["supported_events_normalized"])
+                    st.metric("Invalid Timestamps", summary["invalid_timestamps"])
+                with s4:
+                    st.metric("Unsupported Records", summary["unsupported_records"])
+                    st.metric("Stages Completed", len(summary["stages_completed"]))
 
 with col_scope:
     render_card_header("Supported Telemetry Scope", pill_text="v1.0 ENFORCED", pill_class="pill-primary", icon_name="shield")
@@ -124,60 +273,6 @@ with col_scope:
         """,
         unsafe_allow_html=True
     )
-
-if uploaded_files:
-    st.markdown("<div style='font-size: 13px; font-weight: 600; color: #F8FAFC; margin: 12px 0 6px 0;'>Selected Files for Ingestion:</div>", unsafe_allow_html=True)
-    file_info = []
-    file_bytes_map = {}
-    for f in uploaded_files:
-        size_kb = len(f.getvalue()) / 1024
-        file_info.append({
-            "Filename": f.name,
-            "Format": f.name.split(".")[-1].upper(),
-            "Size": f"{size_kb:.2f} KB",
-            "Status": "Ready for Processing"
-        })
-        file_bytes_map[f.name] = f.getvalue()
-
-    df_files = pd.DataFrame(file_info)
-    st.dataframe(df_files, use_container_width=True, hide_index=True, height=calc_df_height(df_files, min_h=80, max_h=200))
-
-    c_btn, c_note = st.columns([3, 7])
-    with c_btn:
-        start_ingest = st.button("Start Forensic Ingestion", type="primary", use_container_width=True)
-    with c_note:
-        st.caption("Verification: Enforces non-empty raw_ref and UTC normalization across all ingested records.")
-
-    if start_ingest:
-        with st.status("Executing ChronoTrace Forensic Processing Pipeline...", expanded=True) as status:
-            st.write("[Stage 1/7] Validating binary headers and file schema constraints...")
-            st.write("[Stage 2/7] Extracting EVTX records / JSON structures into raw storage...")
-            st.write("[Stage 3/7] Committing raw evidence with immutable raw_ref citations...")
-            st.write("[Stage 4/7] Normalizing timestamps to UTC intervals [ts_start, ts_end]...")
-            st.write("[Stage 5/7] Executing entity resolution and building NetworkX provenance graph...")
-            st.write("[Stage 6/7] Calculating 4-factor confidence metrics and evaluating conflict rules...")
-            st.write("[Stage 7/7] Reconstructing attack timeline, MITRE ATT&CK stages, and findings...")
-
-            summary = run_ingestion_pipeline(selected_inv_id, file_bytes_map)
-            status.update(label="Forensic Ingestion Pipeline Completed Successfully", state="complete", expanded=False)
-
-        st.success(f"Processing complete: {summary['supported_events_normalized']} events normalized into active case.")
-
-        # Ingestion Summary Metrics Row
-        st.markdown("<div style='font-size: 13px; font-weight: 600; color: #F8FAFC; margin: 12px 0 6px 0;'>Ingestion Summary</div>", unsafe_allow_html=True)
-        s1, s2, s3, s4 = st.columns(4)
-        with s1:
-            st.metric("Files Processed", summary["files_processed"])
-            st.metric("Parsing Errors", summary["parsing_errors"])
-        with s2:
-            st.metric("Raw Records Parsed", summary["raw_records_parsed"])
-            st.metric("Missing Fields", summary["missing_required_fields"])
-        with s3:
-            st.metric("Supported Normalized", summary["supported_events_normalized"])
-            st.metric("Invalid Timestamps", summary["invalid_timestamps"])
-        with s4:
-            st.metric("Unsupported Records", summary["unsupported_records"])
-            st.metric("Stages Completed", len(summary["stages_completed"]))
 
 st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 

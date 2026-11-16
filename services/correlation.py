@@ -233,8 +233,10 @@ def build_provenance_graph(
     for eid, edata in entities.items():
         G.add_node(eid, **edata)
 
+    valid_edges = []
     for edg_key, edata in edges.items():
-        if G.has_node(edata["src_entity"]) and G.has_node(edata["dst_entity"]):
+        if edata["src_entity"] in entities and edata["dst_entity"] in entities:
+            valid_edges.append(edata)
             G.add_edge(
                 edata["src_entity"],
                 edata["dst_entity"],
@@ -242,4 +244,4 @@ def build_provenance_graph(
                 **edata
             )
 
-    return G, list(entities.values()), list(edges.values())
+    return G, list(entities.values()), valid_edges

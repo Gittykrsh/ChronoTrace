@@ -12,6 +12,8 @@ import json
 import xml.etree.ElementTree as ET
 from typing import Dict, Any, List, Tuple
 from database.db import (
+    get_investigation,
+    create_investigation,
     insert_raw_events,
     insert_events,
     insert_entities,
@@ -102,6 +104,9 @@ def run_ingestion_pipeline(
     Executes the full 8-stage ChronoTrace processing pipeline on uploaded evidence files.
     Returns summary statistics and processing status.
     """
+    if not get_investigation(investigation_id):
+        create_investigation(investigation_id, f"Investigation {investigation_id}", status="Active")
+
     summary = {
         "files_processed": 0,
         "raw_records_parsed": 0,
