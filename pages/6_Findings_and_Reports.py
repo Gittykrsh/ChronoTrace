@@ -146,11 +146,13 @@ tab_fnd, tab_mitre, tab_conflicts, tab_preview = st.tabs([
 with tab_fnd:
     # Filter findings
     stage_options = ["All Stages"] + sorted(list({f.get("stage", "Execution") for f in findings}))
-    selected_stage = st.selectbox(
-        "Filter by Attack Stage:",
-        options=stage_options,
-        key="fnd_stage_filter_in_tab"
-    )
+    col_stg, _ = st.columns([3.5, 8.5])
+    with col_stg:
+        selected_stage = st.selectbox(
+            "Filter by Attack Stage:",
+            options=stage_options,
+            key="fnd_stage_filter_in_tab"
+        )
 
     filtered_fnds = findings
     if selected_stage != "All Stages":
@@ -209,6 +211,8 @@ with tab_fnd:
 
         selected_f = filtered_fnds[active_f_idx] if filtered_fnds else None
         if selected_f:
+            f_flags = selected_f.get("flags_list", [])
+            f_flags_html = f'<div style="margin: 4px 0 6px 0;">{"".join([render_flag_badge(fl) + " " for fl in f_flags])}</div>' if f_flags else ""
             st.markdown(
                 f"""
                 <div class="console-elevated" style="padding: 12px 16px; margin-top: 10px;">
@@ -219,7 +223,8 @@ with tab_fnd:
                         </div>
                         {render_raw_ref_pill(selected_f.get('raw_ref', 'N/A'))}
                     </div>
-                    <p style="color: #F8FAFC; margin: 4px 0 6px 0; font-size: 13px;">{selected_f.get('explanation')}</p>
+                    <p style="color: #F8FAFC; margin: 4px 0 4px 0; font-size: 13px;">{selected_f.get('explanation')}</p>
+                    {f_flags_html}
                     <div style="font-size: 11px; color: #64748B; font-family: 'Inter', sans-serif;">
                         Host: <strong style="color: #F8FAFC;">{selected_f.get('host')}</strong> •
                         Event ID: <span style="color: #38BDF8; font-family: 'JetBrains Mono', monospace;">{selected_f.get('event_id')}</span> •

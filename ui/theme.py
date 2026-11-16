@@ -706,6 +706,120 @@ div[data-testid="stRadio"] label:hover {
     color: #38BDF8 !important;
     transform: translateY(-1px) !important;
 }
+
+/* 19. Metric Cards (st.metric) */
+div[data-testid="stMetric"] {
+    background-color: #0D1526 !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 6px !important;
+    padding: 10px 14px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+div[data-testid="stMetric"]:hover {
+    border-color: rgba(56, 189, 248, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+div[data-testid="stMetric"] label {
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    color: #64748B !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+}
+div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+    font-size: 1.45rem !important;
+    font-weight: 700 !important;
+    color: #F8FAFC !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* 20. File Uploader Dropzone (st.file_uploader) */
+div[data-testid="stFileUploader"] {
+    background-color: #070B14 !important;
+    border: 1px dashed rgba(56, 189, 248, 0.35) !important;
+    border-radius: 8px !important;
+    padding: 16px 20px !important;
+    transition: all 0.2s ease !important;
+}
+div[data-testid="stFileUploader"]:hover {
+    border-color: #38BDF8 !important;
+    background-color: #090E1C !important;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.12) !important;
+}
+div[data-testid="stFileUploaderDropzone"] {
+    background: transparent !important;
+    border: none !important;
+}
+div[data-testid="stFileUploader"] section {
+    background: transparent !important;
+}
+div[data-testid="stFileUploader"] button {
+    background-color: #111A2E !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    color: #38BDF8 !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    transition: all 0.18s ease !important;
+}
+div[data-testid="stFileUploader"] button:hover {
+    background-color: #18243E !important;
+    border-color: #38BDF8 !important;
+    color: #F8FAFC !important;
+    transform: translateY(-1px) !important;
+}
+
+/* 21. Status Pipeline Widget (st.status) */
+div[data-testid="stStatusWidget"],
+div[data-testid="stStatusWidget"] > details {
+    background-color: #0D1526 !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    border-radius: 6px !important;
+    padding: 10px 14px !important;
+}
+
+/* 22. Slider Control (st.slider) */
+div[data-testid="stSlider"] [data-baseweb="slider"] {
+    margin-top: 4px !important;
+}
+div[data-testid="stSlider"] div[role="slider"] {
+    background-color: #1D6FE8 !important;
+    border: 2px solid #38BDF8 !important;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.5) !important;
+    width: 14px !important;
+    height: 14px !important;
+}
+div[data-testid="stSlider"] div[role="slider"]:focus {
+    box-shadow: 0 0 0 4px rgba(29, 111, 232, 0.35) !important;
+}
+
+/* 23. Main Content Action Links (KPI Card Footers) */
+.block-container div.stPageLink a {
+    background: rgba(29, 111, 232, 0.10) !important;
+    border: 1px solid rgba(56, 189, 248, 0.20) !important;
+    border-radius: 5px !important;
+    padding: 4px 8px !important;
+    color: #38BDF8 !important;
+    font-size: 0.74rem !important;
+    font-weight: 600 !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin-top: 4px !important;
+    transition: all 0.18s ease !important;
+}
+.block-container div.stPageLink a:hover {
+    background: rgba(29, 111, 232, 0.22) !important;
+    border-color: #38BDF8 !important;
+    color: #F8FAFC !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 24. Tight Flush Element Spacing across Workspaces */
+.block-container .stElementContainer {
+    margin-bottom: 0.55rem !important;
+}
 </style>
 """
 

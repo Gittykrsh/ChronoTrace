@@ -389,6 +389,8 @@ with col_fnd:
 
         selected_finding = filtered_findings[:10][active_idx] if filtered_findings else None
         if selected_finding:
+            flags = selected_finding.get("flags_list", [])
+            flags_html = f'<div style="margin: 4px 0 6px 0;">{"".join([render_flag_badge(fl) + " " for fl in flags])}</div>' if flags else ""
             st.markdown(
                 f"""
                 <div class="console-elevated" style="padding: 10px 14px; margin-top: 8px;">
@@ -396,8 +398,9 @@ with col_fnd:
                         <span style="font-weight: 600; color: #38BDF8; font-size: 13px;">Finding {selected_finding['finding_id']} ({selected_finding.get('stage', 'Execution')})</span>
                         {render_raw_ref_pill(selected_finding.get('raw_ref', 'N/A'))}
                     </div>
-                    <div style="color: #CBD5E1; font-size: 12px; margin: 3px 0 6px 0;">{selected_finding.get('explanation')}</div>
-                    <div style="font-size: 11px; color: #64748B;">
+                    <div style="color: #CBD5E1; font-size: 12px; margin: 3px 0 4px 0;">{selected_finding.get('explanation')}</div>
+                    {flags_html}
+                    <div style="font-size: 11px; color: #64748B; margin-top: 4px;">
                         Event: <span style="color: #38BDF8; font-family: 'JetBrains Mono', monospace;">{selected_finding.get('event_id')}</span> • Host: <strong style="color: #F8FAFC;">{selected_finding.get('host')}</strong> • Confidence: <strong style="color: #34D399;">{selected_finding.get('confidence', 0):.2f}</strong>
                     </div>
                 </div>

@@ -312,16 +312,28 @@ if filtered_events:
                 st.markdown(f"**Score:** `{float(conf_val):.2f}` / 1.00")
                 st.progress(float(conf_val))
 
-                st.markdown("<div style='font-size: 12px; font-weight: 600; color: #CBD5E1; margin-top: 8px;'>4-Factor Breakdown:</div>", unsafe_allow_html=True)
+                st.markdown("<div style='font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px;'>4-Factor Deterministic Breakdown:</div>", unsafe_allow_html=True)
                 factors = {
-                    "Corroboration (Multi-Source Witness)": selected_event.get("corroboration", 0.5),
-                    "Source Reliability (Channel Integrity)": selected_event.get("source_reliability", 0.8),
-                    "Time Precision (Window Delta)": selected_event.get("time_certainty", 0.9),
-                    "Entity Link Strength (GUID Resolution)": selected_event.get("link_strength", 0.8)
+                    "Corroboration": selected_event.get("corroboration", 0.5),
+                    "Source Reliability": selected_event.get("source_reliability", 0.8),
+                    "Time Precision": selected_event.get("time_certainty", 0.9),
+                    "Link Strength": selected_event.get("link_strength", 0.8)
                 }
+                f_html = []
                 for fname, fval in factors.items():
-                    st.caption(f"{fname}: **{fval:.2f}**")
-                    st.progress(float(fval))
+                    pct = int(float(fval) * 100)
+                    f_html.append(f"""
+                    <div style="background: #050811; border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 5px; padding: 6px 8px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #94A3B8; margin-bottom: 4px;">
+                            <span>{fname}</span>
+                            <strong style="color: #38BDF8; font-family: 'JetBrains Mono', monospace;">{float(fval):.2f}</strong>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.08); height: 4px; border-radius: 2px; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, #1D6FE8, #38BDF8); width: {pct}%; height: 100%; border-radius: 2px;"></div>
+                        </div>
+                    </div>
+                    """)
+                st.markdown(f'<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 5px;">{"".join(f_html)}</div>', unsafe_allow_html=True)
             else:
                 st.info("Confidence score unavailable.")
 

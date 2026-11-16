@@ -58,8 +58,11 @@ init_db()
 selected_inv_id = render_sidebar(current_page_id="ingestion")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
-# 3. Render Topbar
-render_topbar("Ingestion", inv)
+# 3. Render Topbar with Synchronized Filters
+events = get_events(selected_inv_id)
+hosts = sorted(list({e["host"] for e in events if e.get("host")}))
+sources = sorted(list({e["source"] for e in events if e.get("source")}))
+render_topbar("Ingestion", inv, hosts=hosts, sources=sources)
 
 # 4. Top Notice Banner (Matching Reference Console)
 render_notice_banner(

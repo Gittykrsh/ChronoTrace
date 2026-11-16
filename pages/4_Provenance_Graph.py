@@ -36,7 +36,7 @@ from ui.theme import (
 )
 from ui.layout import render_sidebar, render_topbar
 from ui.components import render_page_header, render_card_header, render_notice_banner
-from database.db import init_db, get_investigation, get_graph_data
+from database.db import init_db, get_investigation, get_graph_data, get_events
 
 # 1. Page Configuration & Theme
 st.set_page_config(
@@ -56,11 +56,13 @@ inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Act
 graph_data = get_graph_data(selected_inv_id)
 entities = graph_data.get("entities", [])
 edges = graph_data.get("edges", [])
+events = get_events(selected_inv_id)
 
 hosts = sorted(list({e["host"] for e in entities if e.get("host")}))
+sources = sorted(list({e["source"] for e in events if e.get("source")}))
 
 # 4. Render Topbar
-filters = render_topbar("Graph", inv, hosts=hosts)
+filters = render_topbar("Graph", inv, hosts=hosts, sources=sources)
 
 # Operational Assurance Notice Banner (Matches Reference Desktop Console)
 render_notice_banner(
@@ -211,6 +213,14 @@ else:
 
         with open(tmp_path, "r", encoding="utf-8") as f:
             html_code = f.read()
+
+        html_code = html_code.replace(
+            "<body",
+            '<body style="margin: 0; padding: 0; background-color: #070B14; overflow: hidden;"'
+        ).replace(
+            'id="mynetworkid"',
+            'id="mynetworkid" style="border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; background-color: #070B14; width: 100%; height: 500px;"'
+        )
 
         try:
             os.unlink(tmp_path)
