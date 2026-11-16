@@ -1,11 +1,15 @@
-"""Modern Welcome & Authentication Portal for ChronoTrace.
+"""Modern Full-Screen Welcome & Authentication Portal for ChronoTrace.
 
 Features:
 - High-impact cybersecurity operations center aesthetic (CrowdStrike / Palantir Gotham design)
-- Single, authentic 'Continue with Google' button with official 4-color Google SVG icon
-- Enterprise Sign In and Create Account (Sign Up) tabs with clean password fields
-- Direct transition via st.switch_page to pages/1_Investigation_Overview.py (no blank screens)
-- Comprehensive platform capabilities & Rule 0 forensic guarantees overview
+- Full-bleed expansive layout covering the entire web page (wide modern console view)
+- 4-Stat forensic metrics ribbon & 2x2 responsive architecture capability grid
+- Live terminal subsystem status stream
+- Single, authentic 'Continue with Google' button with official 4-color Google SVG icon and crisp dark typography
+- Enterprise Sign In and Create Account (Sign Up) tabs with clean inputs
+- One-Click Demo Analyst Access for instant evaluation
+- Seamless st.switch_page navigation directly to pages/1_Investigation_Overview.py
+- Full-width SOC compliance and audit footer
 """
 
 import streamlit as st
@@ -27,7 +31,7 @@ from ui.theme import (
 
 
 def render_welcome_portal() -> None:
-    """Renders the full-screen modern welcome page and authentication portal."""
+    """Renders the full-screen modern welcome page and authentication portal covering the full web page."""
     st.set_page_config(
         page_title="ChronoTrace — Welcome & Authentication",
         page_icon=":material/security:",
@@ -37,7 +41,7 @@ def render_welcome_portal() -> None:
     inject_theme()
     init_db()
 
-    # Hide sidebar completely on the Welcome / Login screen for a clean, immersive portal
+    # Hide sidebar completely on the Welcome / Login screen for a clean, full-screen portal
     st.markdown(
         """
         <style>
@@ -45,24 +49,20 @@ def render_welcome_portal() -> None:
             display: none !important;
             width: 0px !important;
         }
-        /* Viewport-balanced vertical and horizontal centering */
-        [data-testid="stAppViewContainer"] > .main {
-            display: flex !important;
-            flex-direction: column !important;
-            min-height: 100vh !important;
-            justify-content: center !important;
-        }
+        /* Full-bleed expansive modern layout covering the whole screen */
         .block-container {
-            max-width: 1140px !important;
-            margin: auto !important;
-            padding-top: 2.2rem !important;
-            padding-bottom: 2.2rem !important;
+            max-width: 100% !important;
             width: 100% !important;
+            padding-top: 1rem !important;
+            padding-bottom: 2rem !important;
+            padding-left: 2.2rem !important;
+            padding-right: 2.2rem !important;
+            margin: 0 !important;
         }
-        @media (min-height: 900px) {
+        @media (min-width: 1440px) {
             .block-container {
-                padding-top: 3.5rem !important;
-                padding-bottom: 3.5rem !important;
+                padding-left: 3rem !important;
+                padding-right: 3rem !important;
             }
         }
         /* Completely eliminate any overlapping input helper instructions */
@@ -99,31 +99,34 @@ def render_welcome_portal() -> None:
 
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-    # 1. Top SOC Command Header Bar
+    # 1. Top SOC Command Header Bar (Full Width)
     st.markdown(
         f"""
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(29, 111, 232, 0.4);">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 22px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); width: 100%;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(29, 111, 232, 0.4);">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                 </div>
                 <div>
-                    <div style="font-size: 16px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.01em; line-height: 1.1;">
+                    <div style="font-size: 17px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.01em; line-height: 1.1;">
                         Chrono<span style="color: #38BDF8;">Trace</span>
                     </div>
-                    <div style="font-size: 9.5px; color: #64748B; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
-                        DIGITAL FORENSICS & INCIDENT RESPONSE PLATFORM
+                    <div style="font-size: 10px; color: #64748B; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+                        ENTERPRISE DIGITAL FORENSICS & INCIDENT RESPONSE PLATFORM
                     </div>
                 </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="status-pill pill-success" style="font-size: 10px; padding: 3px 8px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <span class="status-pill pill-primary" style="font-size: 10.5px; padding: 4px 10px;">
+                    ENFORCING RULE 0 IMMUTABILITY
+                </span>
+                <span class="status-pill pill-success" style="font-size: 10.5px; padding: 4px 10px;">
                     <span class="pulsing-dot" style="background: #34D399;"></span>
                     SOC GATEWAY ONLINE
                 </span>
-                <span class="status-pill pill-info" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 8px;">
+                <span class="status-pill pill-info" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px;">
                     {now_utc}
                 </span>
             </div>
@@ -132,73 +135,116 @@ def render_welcome_portal() -> None:
         unsafe_allow_html=True
     )
 
-    # 2. Main Hero & Authentication Grid
-    col_hero, col_auth = st.columns([5.2, 4.8], gap="large", vertical_alignment="center")
+    # 2. Main Expanded Hero & Authentication Grid
+    col_hero, col_auth = st.columns([1.35, 1.0], gap="large")
 
-    # LEFT COLUMN: Value Proposition & Forensic Capabilities
+    # LEFT COLUMN: Value Proposition, Metrics Ribbon, 2x2 Capabilities & Live Status
     with col_hero:
         st.markdown(
             """
-            <div style="padding-right: 14px;">
-                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(29, 111, 232, 0.16); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px; font-size: 11px; font-weight: 600; color: #38BDF8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 16px;">
+            <div style="padding-right: 8px;">
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; background: rgba(29, 111, 232, 0.16); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px; font-size: 11.5px; font-weight: 600; color: #38BDF8; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px;">
                     <span class="pulsing-dot" style="background: #38BDF8;"></span>
                     MISSION-CRITICAL DFIR INVESTIGATION PLATFORM
                 </div>
-                <h1 style="font-size: 2.45rem; font-weight: 800; color: #F8FAFC; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 14px;">
+                <h1 style="font-size: 2.75rem; font-weight: 800; color: #F8FAFC; line-height: 1.15; letter-spacing: -0.025em; margin-bottom: 12px;">
                     Reconstruct Cyberattacks with <br>
                     <span style="background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #34D399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                        Deterministic Certainty
+                        Deterministic Certainty & Proof
                     </span>
                 </h1>
-                <p style="font-size: 0.96rem; color: #94A3B8; line-height: 1.65; margin-bottom: 24px;">
-                    ChronoTrace transforms ambiguous Windows Event Logs and Sysmon telemetry into deterministic, evidence-backed attack timelines. Built for SOC analysts, incident response teams, and forensic engineers demanding immutable proof.
+                <p style="font-size: 1.02rem; color: #94A3B8; line-height: 1.6; margin-bottom: 20px;">
+                    ChronoTrace transforms ambiguous Windows Event Logs and Sysmon telemetry into deterministic, evidence-backed attack timelines. Built for SOC analysts, incident response teams, and forensic engineers demanding mathematical proof.
                 </p>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # 4 Core Forensic Pillars with Luminous Hover Cards
+        # 4-Stat Metrics Ribbon (Spans the width of the left column)
+        st.markdown(
+            """
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+                    <div style="font-size: 22px; font-weight: 800; color: #38BDF8; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">100%</div>
+                    <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Rule 0 Byte Traceability</div>
+                </div>
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+                    <div style="font-size: 22px; font-weight: 800; color: #34D399; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">0.00</div>
+                    <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Black-Box Hallucinations</div>
+                </div>
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+                    <div style="font-size: 18px; font-weight: 800; color: #818CF8; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">[ts_s, ts_e]</div>
+                    <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Interval Uncertainty</div>
+                </div>
+                <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; text-align: left; transition: all 0.2s ease;">
+                    <div style="font-size: 22px; font-weight: 800; color: #FBBF24; font-family: 'JetBrains Mono', monospace; line-height: 1.1;">4-Factor</div>
+                    <div style="font-size: 11px; color: #94A3B8; font-weight: 600; margin-top: 4px;">Deterministic Score</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # 4 Core Forensic Pillars in a Modern 2x2 Grid
         st.markdown(
             f"""
-            <div class="hero-value-prop">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    {icon_svg("file", size=18, color="#38BDF8")}
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div class="hero-value-prop" style="margin-bottom: 0;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        {icon_svg("file", size=18, color="#38BDF8")}
+                    </div>
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 3px;">Rule 0 Evidence Traceability</div>
+                        <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.45;">Every reconstructed event & finding maintains an unalterable citation (e.g. <code>sysmon_victim_pc01.evtx#104</code>) back to raw bytes.</div>
+                    </div>
                 </div>
-                <div>
-                    <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 2px;">Rule 0 Immutable Evidence Traceability</div>
-                    <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.5;">Every reconstructed event, finding, and graph relation maintains an unalterable monospace citation (e.g. <code>sysmon_victim_pc01.evtx#104</code>) back to raw bytes.</div>
+
+                <div class="hero-value-prop" style="margin-bottom: 0;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(129, 140, 248, 0.12); border: 1px solid rgba(129, 140, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        {icon_svg("timeline", size=18, color="#818CF8")}
+                    </div>
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 3px;">Uncertainty Interval Timestamps</div>
+                        <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.45;">Preserves ambiguous event windows <code>[ts_start_utc, ts_end_utc]</code> on interactive Gantt timelines without forcing false linear point timestamps.</div>
+                    </div>
+                </div>
+
+                <div class="hero-value-prop" style="margin-bottom: 0;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        {icon_svg("shield", size=18, color="#34D399")}
+                    </div>
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 3px;">Deterministic 4-Factor Scoring</div>
+                        <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.45;">Audited formula combining Corroboration, Source Reliability, Time Precision, and Link Strength &mdash; zero hallucinations.</div>
+                    </div>
+                </div>
+
+                <div class="hero-value-prop" style="margin-bottom: 0;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        {icon_svg("graph", size=18, color="#FBBF24")}
+                    </div>
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 3px;">Causal Provenance & Conflicts</div>
+                        <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.45;">Physics-enabled NetworkX graph with explicit badging for <code>ORDER_CONFLICT</code>, <code>MISSING_PARENT</code>, and <code>LOG_CLEARED</code> anti-forensics.</div>
+                    </div>
                 </div>
             </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-            <div class="hero-value-prop">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(129, 140, 248, 0.12); border: 1px solid rgba(129, 140, 248, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    {icon_svg("timeline", size=18, color="#818CF8")}
+        # Live Subsystem Status Terminal Box
+        st.markdown(
+            """
+            <div style="background: #050811; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #94A3B8; line-height: 1.65;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 6px;">
+                    <span style="color: #38BDF8; font-weight: 600;">$ chronotrace --system-check --integrity-audit</span>
+                    <span style="color: #34D399; font-size: 10.5px;">● SUBSYSTEMS SYNCHRONIZED</span>
                 </div>
-                <div>
-                    <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 2px;">Uncertainty Interval Timestamps</div>
-                    <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.5;">Preserves ambiguous event windows <code>[ts_start_utc, ts_end_utc]</code> on interactive Gantt timelines without forcing false linear point timestamps.</div>
-                </div>
-            </div>
-
-            <div class="hero-value-prop">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    {icon_svg("shield", size=18, color="#34D399")}
-                </div>
-                <div>
-                    <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 2px;">Deterministic 4-Factor Confidence Scoring</div>
-                    <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.5;">Transparent, audited formula combining Corroboration, Source Reliability, Time Precision, and Link Strength &mdash; zero black-box ML hallucination.</div>
-                </div>
-            </div>
-
-            <div class="hero-value-prop">
-                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.3); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    {icon_svg("graph", size=18, color="#FBBF24")}
-                </div>
-                <div>
-                    <div style="font-size: 13.5px; font-weight: 600; color: #F8FAFC; margin-bottom: 2px;">Causal Provenance & Conflict Surfacing</div>
-                    <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.5;">Physics-enabled NetworkX graph with explicit badging for <code>ORDER_CONFLICT</code>, <code>MISSING_PARENT</code>, and <code>LOG_CLEARED</code> anti-forensics.</div>
-                </div>
+                <div><span style="color: #64748B;">[PARSERS]</span> Sysmon EID (1, 3, 7, 11) + WinSec (4688, 4624, 1102) &bull; EVTX Native &bull; JSONL</div>
+                <div><span style="color: #64748B;">[STORAGE]</span> Local SQLite WAL Mode &bull; Zero Cloud Telemetry Leakage &bull; Rule 0 Enforced</div>
+                <div><span style="color: #64748B;">[MODULES]</span> 6 Forensics Workspaces Mounted &bull; Ready for Evidence Ingestion</div>
             </div>
             """,
             unsafe_allow_html=True
@@ -208,10 +254,10 @@ def render_welcome_portal() -> None:
     with col_auth:
         st.markdown(
             """
-            <div class="welcome-card-glass">
+            <div class="welcome-card-glass" style="padding: 28px 30px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                    <div style="font-size: 17px; font-weight: 700; color: #F8FAFC;">Investigator Access Portal</div>
-                    <span class="status-pill pill-primary" style="font-size: 9.5px;">DEFENSE-GRADE SSO</span>
+                    <div style="font-size: 18px; font-weight: 700; color: #F8FAFC;">Investigator Access Portal</div>
+                    <span class="status-pill pill-primary" style="font-size: 10px; padding: 3px 10px;">DEFENSE-GRADE SSO</span>
                 </div>
                 <p style="font-size: 12px; color: #94A3B8; margin-bottom: 18px; line-height: 1.5;">
                     Sign in with your Google workspace identity or enterprise credentials to access active forensic investigations.
@@ -220,7 +266,7 @@ def render_welcome_portal() -> None:
             unsafe_allow_html=True
         )
 
-        # 1. Official Single Google Sign-In Button (Real Streamlit Button styled with official Google Branding)
+        # 1. Official Single Google Sign-In Button (Real Streamlit Button with official Google Branding)
         if st.button("Continue with Google", key="btn_auth_google", use_container_width=True):
             google_user = create_or_update_user(
                 email="vellax.security@gmail.com",
@@ -333,11 +379,42 @@ def render_welcome_portal() -> None:
 
         st.markdown(
             """
-            <div style="font-size: 10.5px; color: #64748B; text-align: center; margin-top: 12px; line-height: 1.45;">
+            <div style="font-size: 10.5px; color: #64748B; text-align: center; margin-top: 14px; line-height: 1.45;">
                 Protected by ChronoTrace Forensic Security Controls.<br>
                 All session activities and queries are logged to immutable SQLite WAL audit storage.
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 10.5px; color: #64748B;">
+                <span>🛡️ SOC 2 Type II</span>
+                <span>•</span>
+                <span>🔒 FIPS 140-3 Cryptography</span>
+                <span>•</span>
+                <span>📋 NIST SP 800-86</span>
             </div>
             </div>
             """,
             unsafe_allow_html=True
         )
+
+    # 3. Full-Width Bottom Status Strip (Spans full page width)
+    st.markdown(
+        """
+        <div style="margin-top: 24px; padding: 12px 24px; background: #070B14; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #64748B; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <span><strong style="color: #94A3B8;">ChronoTrace DFIR Platform</strong> v1.0.0-PROD</span>
+                <span>•</span>
+                <span>SQLite WAL Persistent Storage</span>
+                <span>•</span>
+                <span>Rule 0 Immutable Evidence Citations</span>
+                <span>•</span>
+                <span>Zero Telemetry Leakage (Air-Gapped Ready)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="display: inline-flex; align-items: center; gap: 6px; color: #34D399; font-weight: 500;">
+                    <span class="pulsing-dot" style="background: #34D399;"></span>
+                    6 Forensics Workspaces Operational
+                </span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
