@@ -925,6 +925,39 @@ div.st-key-auth_portal_card:hover {
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(29, 111, 232, 0.22) !important;
 }
 
+/* 26. Modern Modal Dialog Styling for st.dialog (Google Identity Modal) */
+div[data-testid="stDialog"] div[role="dialog"],
+div[data-testid="stModal"] div[role="dialog"],
+div[data-baseweb="modal"] div[role="dialog"] {
+    background: #0E1626 !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 25px 65px rgba(0, 0, 0, 0.85), 0 0 35px rgba(29, 111, 232, 0.25) !important;
+    color: #F8FAFC !important;
+    padding: 24px 28px !important;
+}
+
+div[data-testid="stDialog"] [data-testid="stDialogHeader"] {
+    color: #F8FAFC !important;
+    font-weight: 700 !important;
+    font-size: 1.35rem !important;
+    letter-spacing: -0.01em !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 12px !important;
+}
+
+div[data-testid="stDialog"] button[aria-label="Close"],
+div[data-testid="stDialog"] [data-testid="stDialogCloseButton"] {
+    color: #94A3B8 !important;
+    border-radius: 8px !important;
+    transition: all 0.15s ease !important;
+}
+div[data-testid="stDialog"] button[aria-label="Close"]:hover {
+    color: #F8FAFC !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
 /* Official Google Sign-In Button Styling (Single Real Clickable Button) */
 div.st-key-btn_auth_google button,
 div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button {
