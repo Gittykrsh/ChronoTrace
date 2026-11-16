@@ -1112,6 +1112,11 @@ def get_plotly_layout(title: str = "", height: int = 250, **kwargs) -> Dict[str,
         margin=dict(l=45, r=20, t=30 if title else 12, b=32),
         font=dict(family="Inter, -apple-system, sans-serif", color=TEXT_CAPTION, size=11),
         bargap=0.6,
+        hoverlabel=dict(
+            bgcolor="#0D1526",
+            bordercolor="rgba(56, 189, 248, 0.4)",
+            font=dict(family="Inter, -apple-system, sans-serif", size=11, color="#F8FAFC")
+        ),
         xaxis=dict(
             showgrid=False,
             zerolinecolor="rgba(255, 255, 255, 0.05)",

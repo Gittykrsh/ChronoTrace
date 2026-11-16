@@ -266,7 +266,13 @@ with col_chart_left:
                 x=g["time_dt"],
                 name=name,
                 marker_color=color,
-                opacity=0.88
+                opacity=0.88,
+                hovertemplate=f"<b>{name}</b><br>Time (UTC): %{{x|%Y-%m-%d %H:%M:%S}}<br>Frequency: %{{y}}<extra></extra>",
+                hoverlabel=dict(
+                    bgcolor="#0D1526",
+                    bordercolor=color,
+                    font=dict(color="#F8FAFC", family="Inter, sans-serif", size=11)
+                )
             ))
 
         layout_act = get_plotly_layout(height=250)
@@ -294,7 +300,13 @@ with col_chart_right:
                 text=[high, mod, low],
                 textposition="auto",
                 textfont=dict(color="#090E1A", family="Inter", size=11),
-                width=[0.42, 0.42, 0.42]
+                width=[0.42, 0.42, 0.42],
+                hovertemplate="<b>%{x}</b><br>Findings Count: %{y}<extra></extra>",
+                hoverlabel=dict(
+                    bgcolor="#0D1526",
+                    bordercolor="rgba(56, 189, 248, 0.4)",
+                    font=dict(color="#F8FAFC", family="Inter, sans-serif", size=11)
+                )
             )
         ])
         layout_conf = get_plotly_layout(height=250)
