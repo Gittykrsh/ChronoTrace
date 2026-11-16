@@ -36,7 +36,6 @@ if hasattr(st, "dialog"):
                 if new_name.strip():
                     create_investigation(new_id.strip(), new_name.strip(), new_desc.strip(), status="Active", is_demo=False)
                     st.session_state["active_investigation_id"] = new_id.strip()
-                    st.session_state["sb_inv_selector"] = new_id.strip()
                     st.success(f"Case '{new_name}' initialized.")
                     st.rerun()
                 else:
@@ -152,7 +151,6 @@ def render_sidebar(current_page_id: str = "overview") -> str:
             options=list(inv_options.keys()),
             format_func=lambda x: inv_options[x],
             index=list(inv_options.keys()).index(st.session_state["active_investigation_id"]),
-            key="sb_inv_selector",
             label_visibility="collapsed"
         )
         st.session_state["active_investigation_id"] = selected_id
@@ -176,7 +174,6 @@ def render_sidebar(current_page_id: str = "overview") -> str:
             if st.button("↺ Reset Demo", key="sb_btn_reset_demo", use_container_width=True):
                 seed_demo_data(force=True)
                 st.session_state["active_investigation_id"] = "inv-demo-01"
-                st.session_state["sb_inv_selector"] = "inv-demo-01"
                 for stale_key in [
                     "selected_timeline_eid", "active_explorer_ref", "selected_raw_ref",
                     "timeline_dataframe_selection", "evidence_table_selection",
