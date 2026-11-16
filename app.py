@@ -23,6 +23,6 @@ if not st.session_state.get("authenticated", False):
     from ui.welcome import render_welcome_portal
     render_welcome_portal()
 else:
-    # Authenticated: Render the primary Investigation Overview workspace
-    importlib.import_module("pages.1_Investigation_Overview")
+    # Authenticated: Switch directly to the primary Investigation Overview workspace
+    st.switch_page("pages/1_Investigation_Overview.py")
 
