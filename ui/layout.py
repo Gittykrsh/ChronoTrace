@@ -1,8 +1,9 @@
-"""Shared UI Layout Module for ChronoTrace — Modern Dark Engineering Console.
+"""Shared UI Layout Module for ChronoTrace — Modern Desktop Styling.
 
-Provides:
-- Flat borderless 255px sidebar with brand lockup, flat nav links, case management modal, and bottom status.
-- 48px fixed top command utility bar with live UTC chronometer, case pills, and synchronized filters.
+Directly matches the visual structure and layout of the desktop console reference:
+- Flat borderless 255px sidebar with brand badge, workspace navigation, case engine controls,
+  and bottom 'CONNECTED TELEMETRY' status card with animated pulsing status dot.
+- Fixed 48px top command bar with live UTC chronometer, case badges, and synchronized filters.
 """
 
 import streamlit as st
@@ -49,23 +50,23 @@ else:
 
 
 def render_sidebar(current_page_id: str = "overview") -> str:
-    """Renders flat borderless 255px engineering console sidebar."""
+    """Renders flat borderless 255px desktop console sidebar."""
     with st.sidebar:
-        # 1. Top Brand Lockup (Square rounded badge + ChronoTrace + DFIR Console)
+        # 1. Top Brand Lockup (Matches reference software header)
         st.markdown(
             """
-            <div style="display: flex; align-items: center; gap: 10px; padding: 4px 2px 14px 2px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 12px; width: 100%;">
-                <div style="width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 2px 2px 14px 2px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 12px; width: 100%;">
+                <div style="width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(29, 111, 232, 0.3);">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     </svg>
                 </div>
                 <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0; flex: 1; overflow: hidden;">
-                    <div style="font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 700; color: #F8FAFC; letter-spacing: -0.01em; line-height: 1.1; white-space: nowrap;">
+                    <div style="font-family: 'Inter', sans-serif; font-size: 14.5px; font-weight: 700; color: #F8FAFC; letter-spacing: -0.01em; line-height: 1.1; white-space: nowrap;">
                         Chrono<span style="color: #38BDF8;">Trace</span>
                     </div>
                     <div style="font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; color: #64748B; letter-spacing: 0.08em; margin-top: 1px; text-transform: uppercase; white-space: nowrap;">
-                        DFIR CONSOLE
+                        DFIR CONSOLE v1.0.0
                     </div>
                 </div>
             </div>
@@ -115,7 +116,7 @@ def render_sidebar(current_page_id: str = "overview") -> str:
         )
         st.session_state["active_investigation_id"] = selected_id
 
-        # Clean single-line action buttons (never wrap onto 2 lines)
+        # Clean single-line action buttons with smooth hover
         col_new, col_rst = st.columns([1, 1], gap="small")
         with col_new:
             if hasattr(st, "dialog"):
@@ -144,7 +145,7 @@ def render_sidebar(current_page_id: str = "overview") -> str:
                 st.success("Demo dataset reset.")
                 st.rerun()
 
-        # 4. Bottom Anchored Status Box
+        # 4. Connected Telemetry Status Card (Matching 'CONNECTED DEVICE' from screenshots)
         current_inv = next((i for i in invs if i["id"] == selected_id), None)
         inv_name = current_inv["name"] if current_inv else "Active Case"
         is_demo = bool(current_inv.get("is_demo")) if current_inv else False
@@ -152,18 +153,18 @@ def render_sidebar(current_page_id: str = "overview") -> str:
         st.markdown(
             f"""
             <div style="background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 6px; padding: 10px 12px; margin-top: 14px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
-                    <span style="font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em;">ACTIVE CASE</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em;">CONNECTED TELEMETRY</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #34D399; font-weight: 600;">
-                        <span style="width: 6px; height: 6px; border-radius: 50%; background: #34D399; display: inline-block;"></span>
+                        <span class="pulsing-dot" style="background: #34D399;"></span>
                         {'DEMO' if is_demo else 'LIVE'}
                     </span>
                 </div>
                 <div style="font-size: 12px; font-weight: 600; color: #F8FAFC; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     {inv_name}
                 </div>
-                <div style="font-size: 11px; color: #64748B; margin-top: 5px; font-family: 'JetBrains Mono', monospace;">
-                    SQLite WAL • Rule 0
+                <div style="font-size: 10.5px; color: #64748B; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">
+                    Sysmon • WinSec • Rule 0
                 </div>
             </div>
             """,
@@ -179,7 +180,7 @@ def render_topbar(
     hosts: List[str] = None,
     sources: List[str] = None
 ) -> Dict[str, Any]:
-    """Renders 48px fixed top command utility bar and returns synchronized global filters."""
+    """Renders 48px fixed top command bar and returns synchronized global filters."""
     if hosts is None:
         hosts = []
     if sources is None:
@@ -188,7 +189,6 @@ def render_topbar(
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     is_demo = bool(investigation.get("is_demo", 0))
 
-    # Initialize shared filter state in session_state if not already present
     if "global_host" not in st.session_state:
         st.session_state["global_host"] = "All Hosts"
     if "global_source" not in st.session_state:
@@ -198,10 +198,10 @@ def render_topbar(
     if "global_min_confidence" not in st.session_state:
         st.session_state["global_min_confidence"] = 0.0
 
-    # 48px Top Command Utility Bar
+    # 48px Top Command Bar with Smooth Layout
     st.markdown(
         f"""
-        <div style="background: #0D1526; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin: -1.0rem -2rem 14px -2rem; padding: 8px 2rem; display: flex; align-items: center; justify-content: space-between; height: 48px;">
+        <div style="background: #0D1526; border-bottom: 1px solid rgba(255, 255, 255, 0.06); margin: -0.9rem -2rem 14px -2rem; padding: 8px 2rem; display: flex; align-items: center; justify-content: space-between; height: 48px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 13px; font-weight: 600; color: #F8FAFC;">ChronoTrace</span>
                 <span class="status-pill pill-success" style="font-size: 10px; padding: 1px 6px;">v1.0.0</span>
@@ -275,7 +275,7 @@ def render_topbar(
         )
         st.session_state["global_min_confidence"] = min_conf
 
-    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
     return {
         "search": search_query.strip().lower(),

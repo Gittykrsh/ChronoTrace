@@ -1,4 +1,4 @@
-"""UI Package for ChronoTrace — Modern Dark Engineering Console."""
+"""UI Package for ChronoTrace — Modern Desktop Styling."""
 
 from ui.theme import (
     inject_theme,
@@ -12,6 +12,7 @@ from ui.theme import (
     SIDEBAR_BG,
     TOPBAR_BG,
     CARD_BG,
+    CARD_SURFACE,
     ELEVATED_BG,
     TERMINAL_BG,
     ACCENT_BLUE,
@@ -43,6 +44,7 @@ from ui.layout import (
 )
 
 from ui.components import (
+    render_notice_banner,
     render_page_header,
     render_card_header,
     render_key_value_grid,
@@ -60,6 +62,7 @@ __all__ = [
     "icon_svg",
     "render_sidebar",
     "render_topbar",
+    "render_notice_banner",
     "render_page_header",
     "render_card_header",
     "render_key_value_grid",
@@ -69,6 +72,7 @@ __all__ = [
     "SIDEBAR_BG",
     "TOPBAR_BG",
     "CARD_BG",
+    "CARD_SURFACE",
     "ELEVATED_BG",
     "TERMINAL_BG",
     "ACCENT_BLUE",

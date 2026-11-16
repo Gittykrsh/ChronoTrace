@@ -36,7 +36,7 @@ from ui.theme import (
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
-from ui.components import render_page_header, render_card_header, render_key_value_grid
+from ui.components import render_page_header, render_card_header, render_key_value_grid, render_notice_banner
 from database.db import init_db, get_investigation, get_events
 
 # 1. Page Configuration & Theme
@@ -60,6 +60,13 @@ sources = sorted(list({e["source"] for e in events if e.get("source")}))
 
 # 4. Render Topbar
 filters = render_topbar("Timeline", inv, hosts=hosts, sources=sources)
+
+# Operational Assurance Notice Banner (Matches Reference Desktop Console)
+render_notice_banner(
+    "Uncertainty interval reconstruction notice. Events with ambiguous ordering are rendered as duration windows [ts_start_utc, ts_end_utc] rather than forced linear points. Explicit markers identify ORDER_CONFLICT and LOG_CLEARED boundaries.",
+    icon_name="timeline",
+    highlight_prefix="Chronological Reconstruction Notice:"
+)
 
 # 5. Standardized Page Header Block
 render_page_header(

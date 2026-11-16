@@ -1,14 +1,12 @@
-"""ChronoTrace UI Theme & Design System — Matte Obsidian & Cobalt Engineering Console.
+"""ChronoTrace UI Theme & Design System — Matte Obsidian Desktop Console.
 
-Clean, modern dark-mode desktop engineering console aesthetic:
-- Matte obsidian canvas (#0B111E), sidebar (#090E1A), topbar (#0D1526)
-- Flat hairline-bordered cards (#0F172A, 1px solid rgba(255,255,255,0.07), 8px radius)
-- Elevated sub-panels (#131D31) and recessed terminal/log boxes (#070B14)
-- Cobalt blue interactive accent (#1D6FE8, hover #2563EB)
-- Eyebrow / highlight blue (#38BDF8) used sparingly for micro-labels
-- Semantic status pills: Emerald (#34D399), Amber (#FBBF24), Rose (#FB7185), Slate (#94A3B8)
+Inspired by modern high-performance desktop engineering consoles:
+- Matte obsidian canvas (#090E1A), sidebar (#070B14), cards (#0D1526 / #0F1A2E)
+- Hairline borders (rgba(255, 255, 255, 0.07)), cobalt blue primary actions (#1D6FE8, hover #2563EB)
+- Micro-eyebrow & highlight cyan (#38BDF8), semantic status pills (Emerald, Amber, Rose, Slate)
+- Smooth CSS animations (fade-in, hover-lift, pulse-dot, transition-all) across cards, inputs, dropdowns, and tabs
 - Inter for UI typography, JetBrains Mono strictly for forensic telemetry & timestamps
-- Flat borderless sidebar navigation, hidden header anchors, custom 5px scrollbars
+- Custom 5px scrollbars, hidden header anchors, and dark Plotly templates
 """
 
 import streamlit as st
@@ -16,12 +14,13 @@ import plotly.graph_objects as go
 from typing import Dict, Any, Optional
 
 # Color Tokens
-CANVAS_BG = "#0B111E"
-SIDEBAR_BG = "#090E1A"
+CANVAS_BG = "#090E1A"
+SIDEBAR_BG = "#070B14"
 TOPBAR_BG = "#0D1526"
-CARD_BG = "#0F172A"
+CARD_BG = "#0F1A2E"
+CARD_SURFACE = "#0D1526"
 ELEVATED_BG = "#131D31"
-TERMINAL_BG = "#070B14"
+TERMINAL_BG = "#050811"
 
 ACCENT_BLUE = "#1D6FE8"
 ACCENT_HOVER = "#2563EB"
@@ -51,7 +50,7 @@ TEXT_CAPTION = "#94A3B8"
 BORDER_HAIRLINE = "rgba(255, 255, 255, 0.07)"
 BORDER_DIVIDER = "rgba(255, 255, 255, 0.05)"
 
-# Lucide-style 15px inline SVGs (stroke-width 1.75, crisp engineering console aesthetic)
+# Lucide-style 15px inline SVGs
 SVG_ICONS = {
     "shield": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
     "activity": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
@@ -72,7 +71,8 @@ SVG_ICONS = {
     "clock": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     "terminal": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>',
     "copy": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-    "arrow_right": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>'
+    "info": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    "bell": '<svg viewBox="0 0 24 24" width="{s}" height="{s}" fill="none" stroke="{c}" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>'
 }
 
 
@@ -84,10 +84,33 @@ def icon_svg(name: str, size: int = 15, color: str = "currentColor") -> str:
 
 THEME_CSS = """
 <style>
-/* 1. Typography Import: Inter & JetBrains Mono */
+/* 1. Google Fonts Import: Inter & JetBrains Mono */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-/* 2. Semantic Text Font Application (Strictly preserving Streamlit icon fonts) */
+/* 2. Keyframe Animations for Smooth Desktop Console Feel */
+@keyframes consoleFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulseGlow {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.45;
+        transform: scale(0.88);
+    }
+}
+
+/* 3. Global Semantic Typography (Safely isolating Streamlit icon fonts) */
 html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebarContent"],
 h1, h2, h3, h4, h5, h6, p, label, input, textarea {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -142,20 +165,21 @@ header[data-testid="stHeader"] {
     display: none !important;
 }
 
-/* 3. Main Container Spacing & Layout */
+/* 4. Canvas & Smooth Layout Entry */
 .stApp {
-    background-color: #0B111E !important;
+    background-color: #090E1A !important;
 }
 
 .block-container {
-    padding-top: 1.0rem !important;
+    padding-top: 0.9rem !important;
     padding-bottom: 2rem !important;
     padding-left: 2rem !important;
     padding-right: 2rem !important;
     max-width: 100% !important;
+    animation: consoleFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* 4. Custom Sleek 5px Scrollbars */
+/* 5. Custom Sleek 5px Scrollbars */
 ::-webkit-scrollbar {
     width: 5px;
     height: 5px;
@@ -166,17 +190,18 @@ header[data-testid="stHeader"] {
 ::-webkit-scrollbar-thumb {
     background: rgba(148, 163, 184, 0.2);
     border-radius: 4px;
+    transition: background 0.2s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(56, 189, 248, 0.4);
+    background: rgba(56, 189, 248, 0.45);
 }
 
-/* 5. Flat Borderless Sidebar (Width 255px) */
+/* 6. Desktop Console Sidebar (Width 255px) */
 section[data-testid="stSidebar"] {
     min-width: 255px !important;
     max-width: 255px !important;
     width: 255px !important;
-    background-color: #090E1A !important;
+    background-color: #070B14 !important;
     border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 section[data-testid="stSidebar"] > div {
@@ -185,8 +210,8 @@ section[data-testid="stSidebar"] > div {
 [data-testid="stSidebarContent"] {
     width: 255px !important;
     padding-top: 0.6rem !important;
-    padding-left: 0.8rem !important;
-    padding-right: 0.8rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
     padding-bottom: 1.25rem !important;
 }
 
@@ -203,7 +228,7 @@ div.stPageLink a {
     align-items: center !important;
     gap: 9px !important;
     text-decoration: none !important;
-    transition: all 0.12s ease-in-out !important;
+    transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1) !important;
     margin-bottom: 2px !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -213,13 +238,14 @@ div.stPageLink a {
 div.stPageLink a:hover {
     background: rgba(255, 255, 255, 0.04) !important;
     color: #F8FAFC !important;
+    transform: translateX(2px) !important;
 }
 
-/* Active navigation link: subtle cobalt blue pill with crisp cyan highlight */
+/* Active navigation link: subtle cobalt blue pill with crisp highlight */
 div.stPageLink a[aria-current="page"] {
-    background: rgba(29, 111, 232, 0.16) !important;
-    border: 1px solid rgba(56, 189, 248, 0.28) !important;
-    color: #F8FAFC !important;
+    background: rgba(29, 111, 232, 0.18) !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    color: #38BDF8 !important;
     font-weight: 600 !important;
 }
 
@@ -227,7 +253,7 @@ div.stPageLink a span {
     color: inherit !important;
 }
 
-/* Sidebar Action Buttons */
+/* Sidebar Action Buttons with Smooth Hover Animation */
 section[data-testid="stSidebar"] .stButton > button {
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -238,42 +264,50 @@ section[data-testid="stSidebar"] .stButton > button {
     height: 34px !important;
     min-height: 34px !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    background: #131D31 !important;
+    background: #0D1526 !important;
     color: #F8FAFC !important;
     border-radius: 6px !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 section[data-testid="stSidebar"] .stButton > button:hover {
-    background: #1A2640 !important;
-    border-color: rgba(255, 255, 255, 0.15) !important;
+    background: #131D31 !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
+    color: #38BDF8 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* 6. Card & Panel Surface (#0F172A with hairline border) */
+/* 7. Card & Panel Surface (#0D1526 with Hairline Border) */
 .console-card {
-    background: #0F172A;
+    background: #0D1526;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 8px;
     padding: 14px 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    transition: border-color 0.15s ease-in-out;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .console-card:hover {
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.14);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 /* KPI Card Pattern */
 .console-kpi-card {
-    background: #0F172A;
+    background: #0D1526;
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 8px;
     padding: 12px 14px;
-    min-height: 100px;
+    min-height: 98px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: all 0.15s ease-in-out;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .console-kpi-card:hover {
-    border-color: rgba(56, 189, 248, 0.25);
+    border-color: rgba(56, 189, 248, 0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .kpi-label {
@@ -301,17 +335,18 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     color: #94A3B8;
 }
 
-/* Inner Sub-Card / Elevated Panel */
+/* Elevated Sub-Panel */
 .console-elevated {
-    background-color: #131D31;
+    background-color: #111A2E;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 6px;
     padding: 14px 16px;
+    transition: border-color 0.18s ease;
 }
 
 /* Recessed Terminal Box */
 .console-terminal {
-    background-color: #070B14;
+    background-color: #050811;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 6px;
     padding: 12px 14px;
@@ -321,7 +356,22 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     line-height: 1.6;
 }
 
-/* 7. Status Pills & Badges */
+/* 8. Notice Banner (Matching Screenshots) */
+.console-notice-banner {
+    background: rgba(13, 21, 38, 0.85);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: 6px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #CBD5E1;
+    margin-bottom: 12px;
+    animation: consoleFadeIn 0.3s ease;
+}
+
+/* 9. Status Pills & Badges */
 .status-pill {
     display: inline-flex;
     align-items: center;
@@ -334,6 +384,7 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     font-family: 'Inter', sans-serif;
     text-transform: uppercase;
     white-space: nowrap;
+    transition: all 0.15s ease;
 }
 
 .pill-success {
@@ -368,7 +419,7 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 
 /* Raw Reference Citation Pill (Monospace) */
 .raw-ref-pill {
-    background: #070B14;
+    background: #050811;
     color: #38BDF8;
     border: 1px solid rgba(56, 189, 248, 0.25);
     padding: 2px 7px;
@@ -379,24 +430,44 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    transition: all 0.15s ease;
+}
+.raw-ref-pill:hover {
+    border-color: #38BDF8;
+    background: rgba(56, 189, 248, 0.08);
 }
 
-/* 8. Interactive Buttons */
+/* Pulsing Status Dot */
+.pulsing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulseGlow 2s infinite ease-in-out;
+}
+
+/* 10. Interactive Buttons with Smooth Hover & Active Effects */
 .stButton > button, .stDownloadButton > button {
-    background-color: #131D31 !important;
+    background-color: #111A2E !important;
     color: #F8FAFC !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 6px !important;
     font-weight: 500 !important;
     font-size: 0.82rem !important;
-    transition: all 0.12s ease-in-out !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
     white-space: nowrap !important;
 }
 
 .stButton > button:hover, .stDownloadButton > button:hover {
-    background-color: #1A2640 !important;
-    border-color: rgba(255, 255, 255, 0.16) !important;
+    background-color: #18243E !important;
+    border-color: rgba(56, 189, 248, 0.35) !important;
     color: #F8FAFC !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.stButton > button:active, .stDownloadButton > button:active {
+    transform: translateY(1px) !important;
 }
 
 .stButton > button[kind="primary"] {
@@ -404,18 +475,21 @@ section[data-testid="stSidebar"] .stButton > button:hover {
     color: #FFFFFF !important;
     font-weight: 600 !important;
     border: 1px solid #1D6FE8 !important;
+    box-shadow: 0 2px 8px rgba(29, 111, 232, 0.3) !important;
 }
 
 .stButton > button[kind="primary"]:hover {
     background-color: #2563EB !important;
     border-color: #2563EB !important;
+    box-shadow: 0 4px 14px rgba(29, 111, 232, 0.5) !important;
+    transform: translateY(-1px) !important;
 }
 
-/* 9. Segmented Tabs Styling */
+/* 11. Segmented Tabs with Smooth Indicator */
 .stTabs [data-baseweb="tab-list"] {
-    background-color: #090E1A !important;
+    background-color: #070B14 !important;
     border-radius: 6px !important;
-    padding: 2px !important;
+    padding: 3px !important;
     gap: 3px !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
@@ -423,61 +497,181 @@ section[data-testid="stSidebar"] .stButton > button:hover {
 .stTabs [data-baseweb="tab"] {
     color: #94A3B8 !important;
     border-radius: 5px !important;
-    padding: 5px 12px !important;
+    padding: 6px 14px !important;
     font-size: 0.80rem !important;
     font-weight: 500 !important;
-    transition: all 0.12s ease !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
     white-space: nowrap !important;
 }
 
+.stTabs [data-baseweb="tab"]:hover {
+    color: #F8FAFC !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
 .stTabs [aria-selected="true"] {
-    background-color: #131D31 !important;
+    background-color: #111A2E !important;
     color: #F8FAFC !important;
     border-bottom: 2px solid #1D6FE8 !important;
     font-weight: 600 !important;
 }
 
-/* 10. Form Inputs & Selectboxes */
+/* 12. Inputs, Selectboxes, Dropdowns with Smooth Focus & Popover Animation */
 div[data-baseweb="select"] > div,
 div[data-baseweb="input"] > div,
 div[data-baseweb="textarea"] > div {
-    background-color: #090E1A !important;
+    background-color: #070B14 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     color: #F8FAFC !important;
     border-radius: 6px !important;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 div[data-baseweb="select"] > div:hover,
 div[data-baseweb="input"] > div:hover {
-    border-color: rgba(56, 189, 248, 0.4) !important;
+    border-color: rgba(56, 189, 248, 0.45) !important;
+    background-color: #090E1C !important;
 }
 
-/* 11. Dataframe Containers */
+div[data-baseweb="select"] > div:focus-within,
+div[data-baseweb="input"] > div:focus-within {
+    border-color: #1D6FE8 !important;
+    box-shadow: 0 0 0 2px rgba(29, 111, 232, 0.25), 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    background-color: #090E1C !important;
+}
+
+div[data-baseweb="select"] svg {
+    color: #94A3B8 !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+div[data-baseweb="select"]:hover svg {
+    color: #38BDF8 !important;
+    transform: translateY(1px) !important;
+}
+
+/* Dropdown popover container with smooth slide-down animation */
+div[data-baseweb="popover"] {
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    animation: consoleDropdownSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@keyframes consoleDropdownSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+ul[data-baseweb="menu"] {
+    background-color: #0D1526 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 6px !important;
+    padding: 4px !important;
+}
+
+li[data-baseweb="menu-item"] {
+    color: #CBD5E1 !important;
+    font-size: 0.82rem !important;
+    border-radius: 4px !important;
+    padding: 6px 10px !important;
+    transition: all 0.14s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+li[data-baseweb="menu-item"]:hover {
+    background-color: #131D31 !important;
+    color: #38BDF8 !important;
+    transform: translateX(2px) !important;
+}
+
+/* 13. Dataframe Containers */
 div[data-testid="stDataFrame"] {
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
     border-radius: 6px !important;
-    background: #0F172A !important;
+    background: #0D1526 !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+div[data-testid="stDataFrame"]:hover {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
 }
 
-/* Expanders */
+/* 14. Expanders with Smooth Transitions */
 details[data-testid="stExpander"] {
-    background-color: #0F172A !important;
+    background-color: #0D1526 !important;
     border: 1px solid rgba(255, 255, 255, 0.06) !important;
     border-radius: 6px !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 details[data-testid="stExpander"]:hover {
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(56, 189, 248, 0.3) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
 }
 details[data-testid="stExpander"] summary {
     color: #F8FAFC !important;
     font-weight: 500 !important;
+    transition: color 0.15s ease !important;
+}
+details[data-testid="stExpander"] summary:hover {
+    color: #38BDF8 !important;
+}
+
+/* 15. Progress Bars with Smooth Cyan-to-Blue Gradient */
+div[data-testid="stProgress"] > div > div > div > div {
+    background: linear-gradient(90deg, #1D6FE8 0%, #38BDF8 100%) !important;
+    border-radius: 4px !important;
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+div[data-testid="stProgress"] > div > div > div {
+    background-color: #050811 !important;
+    border-radius: 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+/* 16. Code Blocks (Recessed Terminal Styling) */
+div[data-testid="stCodeBlock"] {
+    border-radius: 6px !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    background: #050811 !important;
+}
+
+/* 17. Alerts (Notice Card Style) */
+div[data-testid="stAlert"] {
+    background-color: #0D1526 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 6px !important;
+    color: #CBD5E1 !important;
+    animation: consoleFadeIn 0.22s ease !important;
+}
+
+/* 18. Radio Button Group (Pill Buttons) */
+div[data-testid="stRadio"] > div[role="radiogroup"] {
+    gap: 8px !important;
+}
+div[data-testid="stRadio"] label {
+    background: #0D1526 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 6px !important;
+    padding: 4px 10px !important;
+    cursor: pointer !important;
+    transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+div[data-testid="stRadio"] label:hover {
+    border-color: rgba(56, 189, 248, 0.4) !important;
+    color: #38BDF8 !important;
+    transform: translateY(-1px) !important;
 }
 </style>
 """
 
 
 def inject_theme() -> None:
-    """Injects matte obsidian & cobalt console theme CSS into the active app."""
+    """Injects desktop engineering console theme CSS with smooth animations."""
     st.markdown(THEME_CSS, unsafe_allow_html=True)
 
 
@@ -492,7 +686,7 @@ def calc_df_height(df, min_h: int = 110, max_h: int = 420, row_h: int = 38, head
     return min(max_h, max(min_h, computed))
 
 
-def get_plotly_layout(title: str = "", height: int = 260, **kwargs) -> Dict[str, Any]:
+def get_plotly_layout(title: str = "", height: int = 250, **kwargs) -> Dict[str, Any]:
     """Returns standardized Plotly dark layout template for modern engineering console."""
     layout = dict(
         title=dict(
@@ -518,7 +712,7 @@ def get_plotly_layout(title: str = "", height: int = 260, **kwargs) -> Dict[str,
             tickfont=dict(family="Inter, sans-serif", size=10, color=TEXT_MUTED)
         ),
         legend=dict(
-            bgcolor="rgba(15, 23, 42, 0.8)",
+            bgcolor="rgba(13, 21, 38, 0.8)",
             bordercolor="rgba(255, 255, 255, 0.06)",
             borderwidth=1,
             font=dict(size=10, color=TEXT_CAPTION),

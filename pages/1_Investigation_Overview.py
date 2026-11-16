@@ -1,9 +1,10 @@
 """Investigation Overview Dashboard — ChronoTrace.
 
 Primary operational console for digital forensics investigators:
-- Modern engineering console styling (matte obsidian, hairline borders, cobalt accents)
+- Modern desktop engineering console aesthetic with smooth animations
+- Top operational notice banner (Rule 0 & uncertainty awareness)
 - Page header block with eyebrow, title, and descriptive subtitle
-- 6 Uniform-height KPI metric cards with direct drill-down links
+- 6 Uniform-height KPI metric cards with smooth hover lifts
 - 2-Column Plotly row (Attack Activity Timeline + 4-Factor Confidence Distribution)
 - 8-Stage forensic processing pipeline stepper
 - Single-click Actionable Findings table with instant inspector drawer
@@ -39,7 +40,12 @@ from ui.theme import (
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
-from ui.components import render_page_header, render_card_header, render_key_value_grid
+from ui.components import (
+    render_notice_banner,
+    render_page_header,
+    render_card_header,
+    render_key_value_grid
+)
 from database.db import (
     init_db,
     get_investigation,
@@ -83,6 +89,13 @@ sources = sorted(list({e["source"] for e in events if e.get("source")}))
 # 4. Render Topbar with Synchronized Global Filters
 filters = render_topbar("Overview", inv, hosts=hosts, sources=sources)
 
+# 5. Top Notice Banner (Matching Reference Console)
+render_notice_banner(
+    "All reconstructed events enforce Rule 0 immutable citations (raw_ref) and explicit interval timestamps [ts_start, ts_end].",
+    icon_name="shield",
+    highlight_prefix="FORENSIC INTEGRITY NOTICE:"
+)
+
 # Apply global filters
 filtered_events = events
 if filters["host"] != "All Hosts":
@@ -106,14 +119,14 @@ if filters["search"]:
 filtered_event_ids = {e["event_id"] for e in filtered_events}
 filtered_findings = [f for f in findings if f["event_id"] in filtered_event_ids]
 
-# 5. Standardized Page Header Block
+# 6. Standardized Page Header Block
 render_page_header(
     eyebrow="FORENSIC WORKSPACE / OVERVIEW",
     title="Investigation Overview",
     subtitle="Reconstruct attack sequences. Trace every finding to verified evidence."
 )
 
-# 6. Top KPI Strip (Uniform-Height Clean Cards)
+# 7. Top KPI Strip (Uniform-Height Clean Cards with Hover Lift)
 total_events = len(filtered_events)
 reconstructed_findings = len(filtered_findings)
 high_conf_count = sum(1 for f in filtered_findings if (f.get("confidence") or 0.0) >= 0.80)
@@ -216,7 +229,7 @@ with kpi6:
 
 st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-# 7. Main Visualization Row (Equal Height 2-Column Grid)
+# 8. Main Visualization Row (Equal Height 2-Column Grid)
 col_chart_left, col_chart_right = st.columns([6, 4], gap="medium")
 
 with col_chart_left:
@@ -280,7 +293,7 @@ with col_chart_right:
                 marker_color=["#34D399", "#FBBF24", "#FB7185"],
                 text=[high, mod, low],
                 textposition="auto",
-                textfont=dict(color="#0B111E", family="Inter", size=11),
+                textfont=dict(color="#090E1A", family="Inter", size=11),
                 width=[0.42, 0.42, 0.42]
             )
         ])
@@ -292,7 +305,7 @@ with col_chart_right:
 
 st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-# 8. Forensic Processing Pipeline Stepper
+# 9. Forensic Processing Pipeline Stepper
 render_card_header("Processing Pipeline Stepper", pill_text="ALL STAGES SYNCHRONIZED", pill_class="pill-primary", icon_name="layers")
 
 stages = [
@@ -311,7 +324,7 @@ for idx, (sname, sstate) in enumerate(stages):
     with p_cols[idx]:
         is_active = (sstate == "ACTIVE")
         badge_cls = "pill-primary" if is_active else "pill-success"
-        bg_col = "rgba(29, 111, 232, 0.12)" if is_active else "#0F172A"
+        bg_col = "rgba(29, 111, 232, 0.12)" if is_active else "#0D1526"
         border_col = "rgba(56, 189, 248, 0.3)" if is_active else "rgba(255, 255, 255, 0.06)"
         st.markdown(
             f"""
@@ -325,7 +338,7 @@ for idx, (sname, sstate) in enumerate(stages):
 
 st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
-# 9. Bottom Row: Actionable Findings & Ingested Evidence Sources
+# 10. Bottom Row: Actionable Findings & Ingested Evidence Sources
 col_fnd, col_ev = st.columns([6, 4], gap="medium")
 
 with col_fnd:

@@ -34,7 +34,7 @@ from ui.theme import (
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
-from ui.components import render_page_header, render_card_header, render_stacked_result_card
+from ui.components import render_page_header, render_card_header, render_stacked_result_card, render_notice_banner
 from database.db import (
     init_db,
     get_investigation,
@@ -73,6 +73,13 @@ sources = sorted(list({e["source"] for e in events if e.get("source")}))
 
 # 4. Render Topbar
 filters = render_topbar("Reports", inv, hosts=hosts, sources=sources)
+
+# Operational Assurance Notice Banner (Matches Reference Desktop Console)
+render_notice_banner(
+    "Compliance & export notice. Findings are mapped to deterministic MITRE ATT&CK techniques with 4-factor confidence scoring. Export RFC 4180 CSV timelines, structured JSON bundles, and Markdown reports.",
+    icon_name="report",
+    highlight_prefix="Forensic Reporting Notice:"
+)
 
 # 5. Standardized Page Header Block
 render_page_header(

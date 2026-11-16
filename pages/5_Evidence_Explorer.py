@@ -30,7 +30,7 @@ from ui.theme import (
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
-from ui.components import render_page_header, render_card_header, render_key_value_grid, render_recessed_terminal
+from ui.components import render_page_header, render_card_header, render_key_value_grid, render_recessed_terminal, render_notice_banner
 from database.db import init_db, get_investigation, get_raw_events, get_events
 
 # 1. Page Configuration & Theme
@@ -56,6 +56,13 @@ sources = sorted(list({r["source"] for r in raw_records if r.get("source")}))
 
 # 4. Render Topbar
 filters = render_topbar("Explorer", inv, hosts=hosts, sources=sources)
+
+# Operational Assurance Notice Banner (Matches Reference Desktop Console)
+render_notice_banner(
+    "Evidence traceability notice. All normalized attack telemetry maintains immutable pointers (raw_ref) to source log events. Select any record to inspect exact raw JSON payloads alongside Section 6 schema attributes.",
+    icon_name="file",
+    highlight_prefix="Forensic Traceability Notice:"
+)
 
 # 5. Standardized Page Header Block
 render_page_header(

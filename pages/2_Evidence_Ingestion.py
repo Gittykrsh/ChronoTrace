@@ -5,7 +5,7 @@ Handles importing Windows event logs (.evtx and .json) and preparing them for fo
 - Drag-and-drop uploader + Supported Sysmon & Security Scope Card
 - Multi-stage pipeline execution with live status updates
 - Ingestion summary metrics & audit trail
-- Recessed #070B14 terminal log viewer and evidence preview tabs
+- Recessed #050811 terminal log viewer and evidence preview tabs
 """
 
 import streamlit as st
@@ -29,7 +29,12 @@ from ui.theme import (
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
-from ui.components import render_page_header, render_card_header, render_recessed_terminal
+from ui.components import (
+    render_notice_banner,
+    render_page_header,
+    render_card_header,
+    render_recessed_terminal
+)
 from database.db import (
     init_db,
     get_investigation,
@@ -56,25 +61,32 @@ inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Act
 # 3. Render Topbar
 render_topbar("Ingestion", inv)
 
-# 4. Standardized Page Header Block
+# 4. Top Notice Banner (Matching Reference Console)
+render_notice_banner(
+    "Ingestion pipeline validates binary EVTX headers, extracts raw records with immutable raw_ref citations, and normalizes timestamps to UTC intervals.",
+    icon_name="shield",
+    highlight_prefix="INGESTION INTEGRITY GUARD:"
+)
+
+# 5. Standardized Page Header Block
 render_page_header(
     eyebrow="FORENSIC WORKSPACE / INGESTION",
     title="Evidence Ingestion",
     subtitle="Import Windows event logs and prepare them for forensic reconstruction."
 )
 
-# 5. Segmented Mode Switcher
+# 6. Segmented Mode Switcher (Matching Reference Console Pills)
 st.markdown(
     """
     <div style="display: flex; gap: 8px; margin-bottom: 14px;">
-        <span class="status-pill pill-primary" style="padding: 4px 10px; font-size: 11px;">EVIDENCE LOGS (.EVTX / .JSON)</span>
-        <span class="status-pill pill-info" style="padding: 4px 10px; font-size: 11px;">ENDPOINT AGENT STREAM (OFFLINE)</span>
+        <span class="status-pill pill-primary" style="padding: 5px 12px; font-size: 11px;">EVIDENCE LOGS (.EVTX / .JSON)</span>
+        <span class="status-pill pill-info" style="padding: 5px 12px; font-size: 11px;">ENDPOINT AGENT STREAM (OFFLINE)</span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# 6. Upload & Scope Row
+# 7. Upload & Scope Row
 col_upload, col_scope = st.columns([6, 4], gap="medium")
 
 with col_upload:
@@ -166,7 +178,7 @@ if uploaded_files:
 
 st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
-# 7. Ingestion Audit Trail
+# 8. Ingestion Audit Trail
 render_card_header("Ingested Evidence Audit Trail", pill_text="AUDIT READY", pill_class="pill-info", icon_name="report")
 logs = get_ingestion_logs(selected_inv_id)
 
@@ -193,7 +205,7 @@ else:
 
 st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
-# 8. Evidence Previews
+# 9. Evidence Previews
 render_card_header("Evidence Previews (Active Case)", pill_text="INSPECTION", pill_class="pill-primary", icon_name="search")
 tab_raw, tab_norm = st.tabs(["Raw Evidence Sample", "Normalized Events Sample"])
 

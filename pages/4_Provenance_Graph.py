@@ -35,7 +35,7 @@ from ui.theme import (
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
-from ui.components import render_page_header, render_card_header
+from ui.components import render_page_header, render_card_header, render_notice_banner
 from database.db import init_db, get_investigation, get_graph_data
 
 # 1. Page Configuration & Theme
@@ -61,6 +61,13 @@ hosts = sorted(list({e["host"] for e in entities if e.get("host")}))
 
 # 4. Render Topbar
 filters = render_topbar("Graph", inv, hosts=hosts)
+
+# Operational Assurance Notice Banner (Matches Reference Desktop Console)
+render_notice_banner(
+    "Causal graph provenance notice. Interactive physics graph maps process lifecycles, user sessions, network sockets, and file mutations via NetworkX. Amber dashed edges indicate heuristic or uncertain linkages.",
+    icon_name="graph",
+    highlight_prefix="Causal Provenance Notice:"
+)
 
 # 5. Standardized Page Header Block
 render_page_header(
