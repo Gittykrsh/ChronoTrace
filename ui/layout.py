@@ -9,7 +9,7 @@ Directly matches the visual structure and layout of the desktop console referenc
 import streamlit as st
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
-from database.db import get_investigations, create_investigation
+from database.db import get_investigations, create_investigation, reset_investigation
 from data.demo_seed import seed_demo_data
 from ui.theme import icon_svg, ACCENT_BLUE, EYEBROW_BLUE, TEXT_PRIMARY, TEXT_MUTED
 
@@ -35,6 +35,7 @@ if hasattr(st, "dialog"):
             if st.button("Initialize Case", type="primary", use_container_width=True):
                 if new_name.strip():
                     create_investigation(new_id.strip(), new_name.strip(), new_desc.strip(), status="Active", is_demo=False)
+                    st.session_state["pending_active_case"] = new_id.strip()
                     st.session_state["active_investigation_id"] = new_id.strip()
                     st.success(f"Case '{new_name}' initialized.")
                     st.rerun()
@@ -141,22 +142,53 @@ def render_sidebar(current_page_id: str = "overview") -> str:
             seed_demo_data()
             invs = get_investigations()
 
-        inv_options = {inv["id"]: f"{'[DEMO] ' if inv.get('is_demo') else '[LIVE] '}{inv['name']}" for inv in invs}
+        valid_inv_ids = [inv["id"] for inv in invs]
 
-        if "active_investigation_id" not in st.session_state or st.session_state["active_investigation_id"] not in inv_options:
-            st.session_state["active_investigation_id"] = list(inv_options.keys())[0]
+        # Apply any pending case switch BEFORE selectbox renders
+        if "pending_active_case" in st.session_state:
+            pending_id = st.session_state.pop("pending_active_case")
+            if pending_id in valid_inv_ids:
+                st.session_state["active_investigation_id"] = pending_id
+
+        # Ensure active_investigation_id is set and valid
+        if "active_investigation_id" not in st.session_state or st.session_state["active_investigation_id"] not in valid_inv_ids:
+            st.session_state["active_investigation_id"] = valid_inv_ids[0]
+
+        # Format clean, readable labels without ugly truncation
+        inv_options = {}
+        for inv in invs:
+            prefix = "[DEMO] " if inv.get("is_demo") else "[LIVE] "
+            name = inv.get("name", "Investigation")
+            if len(name) > 26:
+                name = name[:24] + "…"
+            inv_options[inv["id"]] = f"{prefix}{name}"
+
+        # Synchronize widget state before widget instantiation
+        st.session_state["case_select_box"] = st.session_state["active_investigation_id"]
+
+        def on_case_selection_changed():
+            new_choice = st.session_state.get("case_select_box")
+            if new_choice and new_choice != st.session_state.get("active_investigation_id"):
+                st.session_state["active_investigation_id"] = new_choice
+                for stale_key in [
+                    "selected_timeline_eid", "active_explorer_ref", "selected_raw_ref",
+                    "timeline_dataframe_selection", "evidence_table_selection",
+                    "ov_fnd_dataframe_selection", "fnd_dataframe_selection"
+                ]:
+                    st.session_state.pop(stale_key, None)
 
         selected_id = st.selectbox(
             "Select Case",
-            options=list(inv_options.keys()),
-            format_func=lambda x: inv_options[x],
-            index=list(inv_options.keys()).index(st.session_state["active_investigation_id"]),
+            options=valid_inv_ids,
+            format_func=lambda cid: inv_options.get(cid, cid),
+            key="case_select_box",
+            on_change=on_case_selection_changed,
             label_visibility="collapsed"
         )
         st.session_state["active_investigation_id"] = selected_id
 
-        # Clean single-line action buttons with prioritized ratio so Reset Demo never clips
-        col_new, col_rst = st.columns([0.82, 1.18], gap="small")
+        # Clean single-line action buttons with prioritized ratio so Reset never clips
+        col_new, col_rst = st.columns([0.88, 1.12], gap="small")
         with col_new:
             if hasattr(st, "dialog"):
                 if st.button("+ New Case", key="sb_btn_new_case", use_container_width=True):
@@ -171,16 +203,24 @@ def render_sidebar(current_page_id: str = "overview") -> str:
                         st.rerun()
 
         with col_rst:
-            if st.button("↺ Reset Demo", key="sb_btn_reset_demo", use_container_width=True):
-                seed_demo_data(force=True)
-                st.session_state["active_investigation_id"] = "inv-demo-01"
+            curr_id = st.session_state.get("active_investigation_id", "inv-demo-01")
+            curr_meta = next((i for i in invs if i["id"] == curr_id), None)
+            is_curr_demo = bool(curr_meta.get("is_demo")) if curr_meta else (curr_id == "inv-demo-01")
+
+            if st.button("↺ Reset", key="sb_btn_reset_case", use_container_width=True, help="Reset demo case to baseline, or wipe custom case evidence back to 0"):
+                reset_investigation(curr_id)
                 for stale_key in [
                     "selected_timeline_eid", "active_explorer_ref", "selected_raw_ref",
                     "timeline_dataframe_selection", "evidence_table_selection",
                     "ov_fnd_dataframe_selection", "fnd_dataframe_selection"
                 ]:
                     st.session_state.pop(stale_key, None)
-                st.success("Demo dataset reset.")
+
+                if is_curr_demo:
+                    st.toast("Demo baseline reset.", icon="↺")
+                else:
+                    case_title = curr_meta['name'] if curr_meta else curr_id
+                    st.toast(f"'{case_title}' evidence reset to 0.", icon="↺")
                 st.rerun()
 
         # 4. Connected Telemetry Status Card (Matching 'CONNECTED DEVICE' from screenshots)

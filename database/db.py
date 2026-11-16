@@ -51,10 +51,47 @@ def create_investigation(
         conn.commit()
 
 
-def get_investigations(db_path: str = DB_PATH) -> List[Dict[str, Any]]:
+def get_investigations(db_path: str = DB_PATH, include_internal_tests: bool = False) -> List[Dict[str, Any]]:
     with get_connection(db_path) as conn:
-        rows = conn.execute("SELECT * FROM investigations ORDER BY created_at DESC").fetchall()
+        if include_internal_tests:
+            rows = conn.execute("SELECT * FROM investigations ORDER BY created_at DESC").fetchall()
+        else:
+            rows = conn.execute("SELECT * FROM investigations WHERE id NOT LIKE 'test-inv%' ORDER BY created_at DESC").fetchall()
         return [dict(r) for r in rows]
+
+
+def delete_investigation(investigation_id: str, db_path: str = DB_PATH) -> None:
+    """Deletes an investigation and all its associated events, entities, edges, and findings."""
+    with get_connection(db_path) as conn:
+        conn.execute("DELETE FROM findings WHERE investigation_id = ?", (investigation_id,))
+        conn.execute("DELETE FROM edges WHERE investigation_id = ?", (investigation_id,))
+        conn.execute("DELETE FROM entities WHERE investigation_id = ?", (investigation_id,))
+        conn.execute("DELETE FROM events WHERE investigation_id = ?", (investigation_id,))
+        conn.execute("DELETE FROM raw_events WHERE investigation_id = ?", (investigation_id,))
+        conn.execute("DELETE FROM ingestion_logs WHERE investigation_id = ?", (investigation_id,))
+        conn.execute("DELETE FROM investigations WHERE id = ?", (investigation_id,))
+        conn.commit()
+
+
+def reset_investigation(investigation_id: str, db_path: str = DB_PATH) -> None:
+    """
+    Resets an investigation:
+    - If it's the demo case (is_demo=1 or id='inv-demo-01'), re-seeds the ground truth demonstration dataset.
+    - If it's a live/custom case, wipes all evidence back to 0 (clean slate) while preserving the case itself.
+    """
+    inv = get_investigation(investigation_id, db_path)
+    if inv and (inv.get("is_demo") or investigation_id == "inv-demo-01"):
+        from data.demo_seed import seed_demo_data
+        seed_demo_data(force=True)
+    else:
+        with get_connection(db_path) as conn:
+            conn.execute("DELETE FROM findings WHERE investigation_id = ?", (investigation_id,))
+            conn.execute("DELETE FROM edges WHERE investigation_id = ?", (investigation_id,))
+            conn.execute("DELETE FROM entities WHERE investigation_id = ?", (investigation_id,))
+            conn.execute("DELETE FROM events WHERE investigation_id = ?", (investigation_id,))
+            conn.execute("DELETE FROM raw_events WHERE investigation_id = ?", (investigation_id,))
+            conn.execute("DELETE FROM ingestion_logs WHERE investigation_id = ?", (investigation_id,))
+            conn.commit()
 
 
 def get_investigation(investigation_id: str, db_path: str = DB_PATH) -> Optional[Dict[str, Any]]:

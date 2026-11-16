@@ -17,10 +17,14 @@ def test_sample_events_ingestion(tmp_path):
     with open(sample_path, "rb") as f:
         data = f.read()
 
-    summary = run_ingestion_pipeline("test-inv-unit-sample", {"sample_events.json": data})
-    assert summary["files_processed"] == 1
-    assert summary["supported_events_normalized"] > 0
-    assert summary["parsing_errors"] == 0
+    try:
+        summary = run_ingestion_pipeline("test-inv-unit-sample", {"sample_events.json": data})
+        assert summary["files_processed"] == 1
+        assert summary["supported_events_normalized"] > 0
+        assert summary["parsing_errors"] == 0
+    finally:
+        from database.db import delete_investigation
+        delete_investigation("test-inv-unit-sample")
 
 
 def test_enterprise_clean_scenario_ingestion(tmp_path):
@@ -31,7 +35,11 @@ def test_enterprise_clean_scenario_ingestion(tmp_path):
     with open(scenario_path, "rb") as f:
         data = f.read()
 
-    summary = run_ingestion_pipeline("test-inv-unit-enterprise", {"enterprise_clean_scenario.json": data})
-    assert summary["files_processed"] == 1
-    assert summary["supported_events_normalized"] == 8
-    assert summary["parsing_errors"] == 0
+    try:
+        summary = run_ingestion_pipeline("test-inv-unit-enterprise", {"enterprise_clean_scenario.json": data})
+        assert summary["files_processed"] == 1
+        assert summary["supported_events_normalized"] == 8
+        assert summary["parsing_errors"] == 0
+    finally:
+        from database.db import delete_investigation
+        delete_investigation("test-inv-unit-enterprise")
