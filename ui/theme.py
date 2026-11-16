@@ -147,30 +147,22 @@ code, pre, .mono-text, .raw-ref-pill, [data-testid="stCodeBlock"] code, .termina
 }
 
 /* Hide Streamlit Header Anchor Links and Clutter */
-header[data-testid="stHeader"],
-[data-testid="stHeader"],
-[data-testid="collapsedControl"],
-[data-testid="stSidebarCollapseButton"],
-button[data-testid="stSidebarCollapseButton"],
-div[data-testid="stSidebarCollapseButton"],
-div[data-testid="stSidebarHeader"],
 [data-testid="stHeaderActionElements"],
 a.anchor-link,
 header[data-testid="stHeader"] .stDeployButton,
 header[data-testid="stHeader"] button[title="View app in Streamlit Community Cloud"],
-header[data-testid="stHeader"] button[data-testid="stBaseButton-header"],
+[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapseButton"],
 #MainMenu, footer {
     display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
+}
+
+header[data-testid="stHeader"] {
+    background: transparent !important;
     height: 0px !important;
     min-height: 0px !important;
-    max-height: 0px !important;
-    width: 0px !important;
-    margin: 0px !important;
-    padding: 0px !important;
-    border: none !important;
-    overflow: hidden !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
 }
 
 [data-testid="stSidebarNav"] {
@@ -209,17 +201,22 @@ header[data-testid="stHeader"] button[data-testid="stBaseButton-header"],
 }
 
 /* 6. Desktop Console Sidebar (Width 268px, Plain Fixed Dock without Arrow Controls) */
-div[data-testid="stSidebarHeader"],
-div[data-testid="stSidebarCollapseButton"],
-[data-testid="collapsedControl"] {
+[data-testid="stSidebarCollapseButton"],
+[data-testid="collapsedControl"],
+button[data-testid="stSidebarCollapseButton"] {
     display: none !important;
     visibility: hidden !important;
     pointer-events: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+div[data-testid="stSidebarHeader"] {
     height: 0px !important;
-    width: 0px !important;
-    margin: 0px !important;
+    min-height: 0px !important;
     padding: 0px !important;
-    border: none !important;
+    margin: 0px !important;
+    overflow: hidden !important;
 }
 
 section[data-testid="stSidebar"] {
@@ -228,33 +225,23 @@ section[data-testid="stSidebar"] {
     width: 268px !important;
     background-color: #070B14 !important;
     border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
-    overflow: hidden !important;
-    overflow-y: hidden !important;
-    height: 100vh !important;
 }
 
 section[data-testid="stSidebar"] > div {
     width: 268px !important;
-    overflow: hidden !important;
-    overflow-y: hidden !important;
 }
 
 [data-testid="stSidebarContent"] {
     width: 268px !important;
-    padding-top: 6px !important;
-    padding-left: 9px !important;
-    padding-right: 9px !important;
-    padding-bottom: 8px !important;
-    overflow-y: hidden !important;
-    overflow-x: hidden !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    padding-top: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+    padding-bottom: 1.25rem !important;
 }
 
-/* Completely remove any sidebar scrollbar and scroll behavior */
+/* Hide scrollbar on sidebar */
 section[data-testid="stSidebar"] ::-webkit-scrollbar,
-[data-testid="stSidebarContent"]::-webkit-scrollbar,
-section[data-testid="stSidebar"] *::-webkit-scrollbar {
+[data-testid="stSidebarContent"]::-webkit-scrollbar {
     display: none !important;
     width: 0px !important;
     height: 0px !important;
