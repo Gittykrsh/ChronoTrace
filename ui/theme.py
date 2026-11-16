@@ -354,8 +354,8 @@ section[data-testid="stSidebar"] .stButton > button {
     white-space: nowrap !important;
     overflow: visible !important;
     text-overflow: clip !important;
-    padding: 4px 6px !important;
-    font-size: 0.74rem !important;
+    padding: 4px 4px !important;
+    font-size: 0.72rem !important;
     font-weight: 500 !important;
     height: 32px !important;
     min-height: 32px !important;

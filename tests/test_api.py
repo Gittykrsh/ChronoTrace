@@ -71,3 +71,38 @@ def test_investigations_and_chain():
         assert c_res.status_code == 200
         chain_data = c_res.json()
         assert "merkle_root" in chain_data
+
+
+def test_investigation_lifecycle_and_deletion():
+    # 1. Protection of demo baseline
+    del_demo = client.delete("/api/v1/investigations/inv-demo-01")
+    assert del_demo.status_code == 400
+    assert "protected" in del_demo.json()["detail"].lower()
+
+    # 2. 404 on nonexistent case
+    del_missing = client.delete("/api/v1/investigations/inv-nonexistent-999")
+    assert del_missing.status_code == 404
+
+    # 3. Create, verify and delete custom case
+    test_id = "test-inv-api-lifecycle"
+    create_res = client.post("/api/v1/investigations", json={
+        "id": test_id,
+        "name": "API Test Investigation Case",
+        "description": "Lifecycle test"
+    })
+    assert create_res.status_code == 201
+    assert create_res.json()["id"] == test_id
+
+    # Verify retrieval
+    get_res = client.get(f"/api/v1/investigations/{test_id}")
+    assert get_res.status_code == 200
+    assert get_res.json()["investigation"]["name"] == "API Test Investigation Case"
+
+    # Delete custom case
+    del_res = client.delete(f"/api/v1/investigations/{test_id}")
+    assert del_res.status_code == 200
+    assert del_res.json()["status"] == "success"
+
+    # Confirm it's gone
+    get_after = client.get(f"/api/v1/investigations/{test_id}")
+    assert get_after.status_code == 404

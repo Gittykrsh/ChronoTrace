@@ -9,7 +9,13 @@ Directly matches the visual structure and layout of the desktop console referenc
 import streamlit as st
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
-from database.db import get_investigations, create_investigation, reset_investigation
+from database.db import (
+    get_investigations,
+    create_investigation,
+    reset_investigation,
+    delete_investigation,
+    get_events
+)
 from data.demo_seed import seed_demo_data
 from ui.theme import icon_svg, ACCENT_BLUE, EYEBROW_BLUE, TEXT_PRIMARY, TEXT_MUTED
 
@@ -44,8 +50,62 @@ if hasattr(st, "dialog"):
         with c2:
             if st.button("Cancel", use_container_width=True):
                 st.rerun()
+
+    @st.dialog("Delete Investigations", width="medium")
+    def _delete_cases_dialog() -> None:
+        invs = get_investigations()
+        custom_cases = [inv for inv in invs if not inv.get("is_demo") and inv["id"] != "inv-demo-01"]
+
+        st.markdown(
+            """
+            <div style="font-size: 12.5px; color: #94A3B8; margin-bottom: 12px; line-height: 1.5;">
+                Select one or more custom investigation cases to permanently delete.<br>
+                <span style="color: #FB7185; font-weight: 500;">Warning:</span> All associated evidence records, graphs, and findings will be permanently wiped.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        if not custom_cases:
+            st.info("No custom cases available to delete. (The baseline demonstration case is protected).")
+            if st.button("Close", use_container_width=True):
+                st.rerun()
+            return
+
+        selected_to_delete = []
+        st.markdown("<div style='font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;'>Active Custom Cases:</div>", unsafe_allow_html=True)
+        for inv in custom_cases:
+            evt_count = len(get_events(inv["id"]))
+            is_active = (st.session_state.get("active_investigation_id") == inv["id"])
+            active_badge = " [Active Case]" if is_active else ""
+
+            checked = st.checkbox(
+                f"{inv['name']} ({inv['id']}){active_badge} — {evt_count} events",
+                key=f"chk_del_{inv['id']}"
+            )
+            if checked:
+                selected_to_delete.append(inv["id"])
+
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        c_del, c_can = st.columns(2)
+        with c_del:
+            num = len(selected_to_delete)
+            btn_label = f"🗑️ Delete Selected ({num})" if num > 0 else "🗑️ Delete Selected"
+            if st.button(btn_label, type="primary", disabled=(num == 0), use_container_width=True):
+                for cid in selected_to_delete:
+                    delete_investigation(cid)
+                if st.session_state.get("active_investigation_id") in selected_to_delete:
+                    st.session_state["pending_active_case"] = "inv-demo-01"
+                    st.session_state["active_investigation_id"] = "inv-demo-01"
+                st.toast(f"Deleted {num} case(s).", icon="🗑️")
+                st.rerun()
+        with c_can:
+            if st.button("Cancel", use_container_width=True):
+                st.rerun()
 else:
     def _create_case_dialog() -> None:
+        pass
+    def _delete_cases_dialog() -> None:
         pass
 
 
@@ -187,20 +247,25 @@ def render_sidebar(current_page_id: str = "overview") -> str:
         )
         st.session_state["active_investigation_id"] = selected_id
 
-        # Clean single-line action buttons with prioritized ratio so Reset never clips
-        col_new, col_rst = st.columns([0.88, 1.12], gap="small")
+        # Action row: + New, 🗑️ Delete, ↺ Reset with balanced column proportions
+        col_new, col_del, col_rst = st.columns([0.92, 1.08, 0.96], gap="small")
         with col_new:
             if hasattr(st, "dialog"):
-                if st.button("+ New Case", key="sb_btn_new_case", use_container_width=True):
+                if st.button("+ New", key="sb_btn_new_case", use_container_width=True, help="Create a new forensic case"):
                     _create_case_dialog()
             else:
-                with st.expander("+ New Case"):
+                with st.expander("+ New"):
                     new_id = st.text_input("Case ID", value=f"inv-case-{len(invs)+1:02d}")
                     new_name = st.text_input("Title")
                     if st.button("Save"):
                         create_investigation(new_id, new_name, "", "Active", False)
                         st.session_state["active_investigation_id"] = new_id
                         st.rerun()
+
+        with col_del:
+            if hasattr(st, "dialog"):
+                if st.button("🗑️ Delete", key="sb_btn_del_cases", use_container_width=True, help="Select and delete custom investigation cases"):
+                    _delete_cases_dialog()
 
         with col_rst:
             curr_id = st.session_state.get("active_investigation_id", "inv-demo-01")
