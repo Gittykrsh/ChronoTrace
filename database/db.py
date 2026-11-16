@@ -450,3 +450,21 @@ def get_user_by_email(email: str, db_path: str = DB_PATH) -> Optional[Dict[str, 
         row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         return dict(row) if row else None
 
+
+def get_users(db_path: str = DB_PATH) -> List[Dict[str, Any]]:
+    """Retrieves all registered investigators and users."""
+    with get_connection(db_path) as conn:
+        rows = conn.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()
+        return [dict(r) for r in rows]
+
+
+def get_entities(investigation_id: str, db_path: str = DB_PATH) -> List[Dict[str, Any]]:
+    """Retrieves entities for an investigation."""
+    return get_graph_data(investigation_id, db_path).get("entities", [])
+
+
+def get_edges(investigation_id: str, db_path: str = DB_PATH) -> List[Dict[str, Any]]:
+    """Retrieves provenance edges for an investigation."""
+    return get_graph_data(investigation_id, db_path).get("edges", [])
+
+
