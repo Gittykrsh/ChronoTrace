@@ -4,7 +4,7 @@ Forensic chronological reconstruction:
 - Horizontal interactive Plotly Gantt timeline showing uncertainty intervals [ts_start, ts_end]
 - Visual markers for ORDER_CONFLICT, MISSING_PARENT, LOG_CLEARED, SINGLE_SOURCE
 - Interactive Master Event Sequence Table with single-click row selection
-- Comprehensive forensic details drawer with 4-factor confidence breakdown and instant drill-down to Evidence Explorer
+- Comprehensive forensic details drawer with hairline-divided key-value grid and instant drill-down to Evidence Explorer
 """
 
 import streamlit as st
@@ -26,20 +26,17 @@ from ui.theme import (
     render_flag_badge,
     render_confidence_badge,
     icon_svg,
-    ACCENT_CYAN,
-    ACCENT_VIOLET,
-    STATUS_EMERALD,
-    SUCCESS_GREEN,
-    STATUS_AMBER,
-    WARNING_AMBER,
-    ORANGE_WARN,
-    STATUS_ROSE,
-    CRITICAL_RED,
+    ACCENT_BLUE,
+    EYEBROW_BLUE,
+    STATUS_SUCCESS_TEXT,
+    STATUS_WARN_TEXT,
+    STATUS_CRIT_TEXT,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
+from ui.components import render_page_header, render_card_header, render_key_value_grid
 from database.db import init_db, get_investigation, get_events
 
 # 1. Page Configuration & Theme
@@ -52,7 +49,7 @@ st.set_page_config(
 inject_theme()
 init_db()
 
-# 2. Render Persistent 280px Sidebar
+# 2. Render Persistent Flat Sidebar
 selected_inv_id = render_sidebar(current_page_id="timeline")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -62,17 +59,13 @@ hosts = sorted(list({e["host"] for e in events if e.get("host")}))
 sources = sorted(list({e["source"] for e in events if e.get("source")}))
 
 # 4. Render Topbar
-filters = render_topbar("Attack Timeline", inv, hosts=hosts, sources=sources)
+filters = render_topbar("Timeline", inv, hosts=hosts, sources=sources)
 
-st.markdown(
-    """
-    <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
-            "Examine event sequences, uncertain ordering, and the verified evidence behind every finding."
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
+# 5. Standardized Page Header Block
+render_page_header(
+    eyebrow="FORENSIC WORKSPACE / TIMELINE",
+    title="Attack Timeline",
+    subtitle="Examine event sequences, uncertain ordering, and the verified evidence behind every finding."
 )
 
 # Apply global filters
@@ -95,19 +88,8 @@ if filters["search"]:
         or q in (e.get("event_id") or "").lower()
     ]
 
-# 5. Interactive Plotly Gantt / Range Timeline
-ico_tl = icon_svg("timeline", size=14, color=ACCENT_CYAN)
-st.markdown(
-    f"""
-    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 7px;">
-            {ico_tl} Interactive Reconstructed Timeline (Uncertainty Intervals)
-        </div>
-        <span style="font-size: 0.68rem; color: #35D6E8; font-family: 'JetBrains Mono', monospace;">Horizontal Bars = [ts_start, ts_end] Range</span>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# 6. Interactive Plotly Gantt / Range Timeline
+render_card_header("Reconstructed Sequence Timeline", pill_text="[TS_START, TS_END] RANGE", pill_class="pill-primary", icon_name="timeline")
 
 if not filtered_events:
     st.info("No timeline events to display for current filter criteria.")
@@ -129,12 +111,12 @@ else:
     )
 
     code_colors = {
-        1: "#35D6E8",
-        3: "#8B7CFF",
-        11: "#10B981",
-        4624: "#3B82F6",
-        4688: "#F59E0B",
-        1102: "#F43F5E"
+        1: "#38BDF8",
+        3: "#818CF8",
+        11: "#34D399",
+        4624: "#60A5FA",
+        4688: "#FBBF24",
+        1102: "#FB7185"
     }
 
     fig = go.Figure()
@@ -145,14 +127,14 @@ else:
 
         # Border styling for conflicts
         if "LOG_CLEARED" in flags:
-            line_color = STATUS_ROSE
-            line_width = 2.5
-        elif "ORDER_CONFLICT" in flags:
-            line_color = STATUS_AMBER
-            line_width = 2.5
-        elif "MISSING_PARENT" in flags:
-            line_color = ORANGE_WARN
+            line_color = "#FB7185"
             line_width = 2
+        elif "ORDER_CONFLICT" in flags:
+            line_color = "#FBBF24"
+            line_width = 2
+        elif "MISSING_PARENT" in flags:
+            line_color = "#F59E0B"
+            line_width = 1.5
         else:
             line_color = bar_color
             line_width = 1
@@ -185,7 +167,7 @@ else:
             showlegend=False
         ))
 
-    calc_height = max(260, min(550, len(df) * 30 + 50))
+    calc_height = max(260, min(520, len(df) * 30 + 50))
     layout_timeline = get_plotly_layout(height=calc_height)
     layout_timeline["margin"] = dict(l=260, r=25, t=15, b=35)
     layout_timeline["xaxis"] = dict(
@@ -198,23 +180,15 @@ else:
     layout_timeline["yaxis"] = dict(
         autorange="reversed",
         gridcolor="rgba(255, 255, 255, 0.05)",
-        tickfont=dict(family="JetBrains Mono, monospace", size=10, color=TEXT_PRIMARY)
+        tickfont=dict(family="Inter, sans-serif", size=10, color=TEXT_PRIMARY)
     )
     fig.update_layout(**layout_timeline)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-# 6. Master Sequence Table with Single-Click Selection
-ico_table = icon_svg("report", size=14, color=ACCENT_CYAN)
-st.markdown(
-    f"""
-    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 4px; display: flex; align-items: center; gap: 7px;">
-        {ico_table} Master Normalized Event Sequence Table
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# 7. Master Sequence Table with Single-Click Selection
+render_card_header("Master Normalized Event Sequence Table", pill_text=f"{len(filtered_events)} RECORDS", pill_class="pill-info", icon_name="report")
 st.caption("Click any event row below to inspect its execution telemetry, 4-factor confidence assessment, and evidence citation:")
 
 if filtered_events:
@@ -262,7 +236,7 @@ if filtered_events:
             selection_mode="single-row",
             on_select="rerun",
             key="timeline_dataframe_selection",
-            height=calc_df_height(df_table, min_h=150, max_h=280)
+            height=calc_df_height(df_table, min_h=140, max_h=260)
         )
         if tbl_out and hasattr(tbl_out, "selection") and tbl_out.selection.rows:
             sel_idx = tbl_out.selection.rows[0]
@@ -270,29 +244,27 @@ if filtered_events:
                 active_eid = filtered_events[sel_idx]["event_id"]
                 st.session_state["selected_timeline_eid"] = active_eid
     except Exception:
-        st.dataframe(df_table, use_container_width=True, hide_index=True, height=calc_df_height(df_table, min_h=150, max_h=280))
+        st.dataframe(df_table, use_container_width=True, hide_index=True, height=calc_df_height(df_table, min_h=140, max_h=260))
 
     selected_event = next((e for e in filtered_events if e["event_id"] == active_eid), filtered_events[0])
 
-    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-    # 7. Forensic Details Drawer (Triggered by Row Selection)
+    # 8. Forensic Details Drawer (Hairline-Divided Key-Value Inspector Grid)
     if selected_event:
         st.markdown(
             f"""
-            <div class="soc-elevated" style="border-left: 3px solid #35D6E8; padding: 12px 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px; margin-bottom: 12px;">
-                    <div>
-                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 1.10rem; color: #35D6E8; font-weight: 700;">
+            <div class="console-card" style="padding: 12px 16px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #38BDF8; font-weight: 600;">
                             {selected_event['event_id']}
                         </span>
-                        <span style="color: #F1F5F9; font-size: 0.90rem; margin-left: 10px; font-weight: 600;">
+                        <span style="color: #F8FAFC; font-size: 13px; font-weight: 600;">
                             {(selected_event.get('image') or '').split(r'\\')[-1] or selected_event.get('source')}
                         </span>
                     </div>
-                    <div>
-                        {render_raw_ref_pill(selected_event.get('raw_ref', 'N/A'))}
-                    </div>
+                    {render_raw_ref_pill(selected_event.get('raw_ref', 'N/A'))}
                 </div>
             </div>
             """,
@@ -302,8 +274,7 @@ if filtered_events:
         col_telemetry, col_confidence = st.columns([6, 4], gap="medium")
 
         with col_telemetry:
-            ico_tel = icon_svg("terminal", size=13, color=ACCENT_CYAN)
-            st.markdown(f"<div style='font-size: 0.82rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;'>{ico_tel} Execution Telemetry</div>", unsafe_allow_html=True)
+            render_card_header("Execution Telemetry", pill_text="NORMALIZED SCHEMA", pill_class="pill-info", icon_name="terminal")
             telemetry_grid = {
                 "Host Endpoint": selected_event.get("host"),
                 "Source Provider": f"{selected_event.get('source')} (Event {selected_event.get('event_code')})",
@@ -317,26 +288,24 @@ if filtered_events:
                 "Executable Path": selected_event.get("image") or "N/A",
                 "MITRE Technique": selected_event.get("mitre_technique") or "N/A"
             }
-            for k, v in telemetry_grid.items():
-                st.markdown(f"**{k}:** `{v}`")
+            render_key_value_grid(telemetry_grid, columns=2)
 
             cmd = selected_event.get("command_line")
             if cmd:
-                st.markdown("**Command Line Execution:**")
+                st.markdown("<div style='font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; margin-top: 8px;'>Command Line:</div>", unsafe_allow_html=True)
                 st.code(cmd, language="powershell")
 
             if selected_event.get("dst_ip"):
-                st.markdown(f"**Network Endpoint:** `{selected_event.get('src_ip') or 'N/A'}` &rarr; `{selected_event.get('dst_ip')}:{selected_event.get('dst_port')}`")
+                st.markdown(f"<div style='font-size: 12px; color: #94A3B8; margin-top: 4px;'>Network: <code>{selected_event.get('src_ip') or 'N/A'}</code> &rarr; <code>{selected_event.get('dst_ip')}:{selected_event.get('dst_port')}</code></div>", unsafe_allow_html=True)
 
         with col_confidence:
-            ico_conf = icon_svg("shield", size=13, color=STATUS_EMERALD)
-            st.markdown(f"<div style='font-size: 0.82rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;'>{ico_conf} Confidence & Conflict Assessment</div>", unsafe_allow_html=True)
+            render_card_header("Confidence & Conflict Assessment", pill_text="DETERMINISTIC", pill_class="pill-primary", icon_name="shield")
             conf_val = selected_event.get("confidence")
             if conf_val is not None:
-                st.markdown(f"**Deterministic Score:** `{float(conf_val):.2f}` / 1.00")
+                st.markdown(f"**Score:** `{float(conf_val):.2f}` / 1.00")
                 st.progress(float(conf_val))
 
-                st.markdown("**Four-Factor Confidence Breakdown:**")
+                st.markdown("<div style='font-size: 12px; font-weight: 600; color: #CBD5E1; margin-top: 8px;'>4-Factor Breakdown:</div>", unsafe_allow_html=True)
                 factors = {
                     "Corroboration (Multi-Source Witness)": selected_event.get("corroboration", 0.5),
                     "Source Reliability (Channel Integrity)": selected_event.get("source_reliability", 0.8),
@@ -351,7 +320,7 @@ if filtered_events:
 
             flags = selected_event.get("flags_list", [])
             if flags:
-                st.markdown("**Active Forensic Flags:**")
+                st.markdown("<div style='font-size: 12px; font-weight: 600; color: #CBD5E1; margin-top: 8px;'>Active Flags:</div>", unsafe_allow_html=True)
                 flag_badges = "".join([render_flag_badge(fl) + " " for fl in flags])
                 st.markdown(flag_badges, unsafe_allow_html=True)
 
@@ -360,8 +329,7 @@ if filtered_events:
                     st.caption(f"**Assessment:** {expl}")
 
             st.markdown("<hr style='margin: 12px 0; border-color: rgba(255, 255, 255, 0.06);'/>", unsafe_allow_html=True)
-            ico_ref = icon_svg("file", size=13, color=ACCENT_CYAN)
-            st.markdown(f"<div style='font-size: 0.80rem; font-weight: 600; color: #F1F5F9; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;'>{ico_ref} Original Evidence Citation</div>", unsafe_allow_html=True)
+            render_card_header("Original Evidence Citation", pill_text="RULE 0 ENFORCED", pill_class="pill-info", icon_name="file")
             st.caption("Every reconstructed event maps directly to authentic raw log records.")
             st.code(selected_event.get("raw_ref"), language="text")
 

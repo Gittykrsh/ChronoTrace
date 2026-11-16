@@ -1,49 +1,95 @@
-"""ChronoTrace UI Package."""
+"""UI Package for ChronoTrace — Modern Dark Engineering Console."""
 
-from .theme import (
+from ui.theme import (
     inject_theme,
+    calc_df_height,
     get_plotly_layout,
     render_raw_ref_pill,
     render_flag_badge,
     render_confidence_badge,
-    APP_BG,
+    icon_svg,
+    CANVAS_BG,
     SIDEBAR_BG,
+    TOPBAR_BG,
     CARD_BG,
     ELEVATED_BG,
-    ACCENT_CYAN,
-    ACCENT_VIOLET,
-    SUCCESS_GREEN,
-    WARNING_AMBER,
-    ORANGE_WARN,
-    CRITICAL_RED,
+    TERMINAL_BG,
+    ACCENT_BLUE,
+    ACCENT_HOVER,
+    EYEBROW_BLUE,
+    STATUS_SUCCESS_TEXT,
+    STATUS_SUCCESS_BG,
+    STATUS_SUCCESS_BORDER,
+    STATUS_WARN_TEXT,
+    STATUS_WARN_BG,
+    STATUS_WARN_BORDER,
+    STATUS_CRIT_TEXT,
+    STATUS_CRIT_BG,
+    STATUS_CRIT_BORDER,
+    STATUS_INFO_TEXT,
+    STATUS_INFO_BG,
+    STATUS_INFO_BORDER,
     TEXT_PRIMARY,
-    TEXT_MUTED
+    TEXT_SECONDARY,
+    TEXT_MUTED,
+    TEXT_CAPTION,
+    BORDER_HAIRLINE,
+    BORDER_DIVIDER
 )
-from .layout import (
+
+from ui.layout import (
     render_sidebar,
-    render_topbar,
-    NAV_ITEMS
+    render_topbar
+)
+
+from ui.components import (
+    render_page_header,
+    render_card_header,
+    render_key_value_grid,
+    render_stacked_result_card,
+    render_recessed_terminal
 )
 
 __all__ = [
     "inject_theme",
+    "calc_df_height",
     "get_plotly_layout",
     "render_raw_ref_pill",
     "render_flag_badge",
     "render_confidence_badge",
+    "icon_svg",
     "render_sidebar",
     "render_topbar",
-    "NAV_ITEMS",
-    "APP_BG",
+    "render_page_header",
+    "render_card_header",
+    "render_key_value_grid",
+    "render_stacked_result_card",
+    "render_recessed_terminal",
+    "CANVAS_BG",
     "SIDEBAR_BG",
+    "TOPBAR_BG",
     "CARD_BG",
     "ELEVATED_BG",
-    "ACCENT_CYAN",
-    "ACCENT_VIOLET",
-    "SUCCESS_GREEN",
-    "WARNING_AMBER",
-    "ORANGE_WARN",
-    "CRITICAL_RED",
+    "TERMINAL_BG",
+    "ACCENT_BLUE",
+    "ACCENT_HOVER",
+    "EYEBROW_BLUE",
+    "STATUS_SUCCESS_TEXT",
+    "STATUS_SUCCESS_BG",
+    "STATUS_SUCCESS_BORDER",
+    "STATUS_WARN_TEXT",
+    "STATUS_WARN_BG",
+    "STATUS_WARN_BORDER",
+    "STATUS_CRIT_TEXT",
+    "STATUS_CRIT_BG",
+    "STATUS_CRIT_BORDER",
+    "STATUS_INFO_TEXT",
+    "STATUS_INFO_BG",
+    "STATUS_INFO_BORDER",
     "TEXT_PRIMARY",
-    "TEXT_MUTED"
+    "TEXT_SECONDARY",
+    "TEXT_MUTED",
+    "TEXT_CAPTION",
+    "BORDER_HAIRLINE",
+    "BORDER_DIVIDER"
 ]

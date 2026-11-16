@@ -1,11 +1,11 @@
 """Evidence Ingestion Page — ChronoTrace.
 
 Handles importing Windows event logs (.evtx and .json) and preparing them for forensic reconstruction:
-- File type validation & size checking
-- Supported Sysmon & Windows Security Event Scope Card
+- Segmented source mode pills
+- Drag-and-drop uploader + Supported Sysmon & Security Scope Card
 - Multi-stage pipeline execution with live status updates
-- Ingestion summary statistics & audit trail
-- Raw and normalized evidence preview tabs
+- Ingestion summary metrics & audit trail
+- Recessed #070B14 terminal log viewer and evidence preview tabs
 """
 
 import streamlit as st
@@ -22,19 +22,14 @@ from ui.theme import (
     inject_theme,
     calc_df_height,
     icon_svg,
-    SUCCESS_GREEN,
-    STATUS_EMERALD,
-    WARNING_AMBER,
-    STATUS_AMBER,
-    CRITICAL_RED,
-    STATUS_ROSE,
-    ACCENT_CYAN,
-    ACCENT_VIOLET,
+    ACCENT_BLUE,
+    EYEBROW_BLUE,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
+from ui.components import render_page_header, render_card_header, render_recessed_terminal
 from database.db import (
     init_db,
     get_investigation,
@@ -54,37 +49,36 @@ st.set_page_config(
 inject_theme()
 init_db()
 
-# 2. Render Persistent 280px Sidebar
+# 2. Render Persistent Flat Sidebar
 selected_inv_id = render_sidebar(current_page_id="ingestion")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
 # 3. Render Topbar
-render_topbar("Evidence Ingestion", inv)
+render_topbar("Ingestion", inv)
 
+# 4. Standardized Page Header Block
+render_page_header(
+    eyebrow="FORENSIC WORKSPACE / INGESTION",
+    title="Evidence Ingestion",
+    subtitle="Import Windows event logs and prepare them for forensic reconstruction."
+)
+
+# 5. Segmented Mode Switcher
 st.markdown(
     """
-    <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
-            "Import Windows event logs and prepare them for forensic reconstruction."
-        </span>
+    <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+        <span class="status-pill pill-primary" style="padding: 4px 10px; font-size: 11px;">EVIDENCE LOGS (.EVTX / .JSON)</span>
+        <span class="status-pill pill-info" style="padding: 4px 10px; font-size: 11px;">ENDPOINT AGENT STREAM (OFFLINE)</span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# 4. Upload & Scope Row
+# 6. Upload & Scope Row
 col_upload, col_scope = st.columns([6, 4], gap="medium")
 
 with col_upload:
-    ico_up = icon_svg("upload", size=14, color=ACCENT_CYAN)
-    st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-            {ico_up} Upload Evidence Log Files (.evtx / .json)
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card_header("Upload Forensic Log Files", pill_text="BINARY / JSON", pill_class="pill-info", icon_name="upload")
     uploaded_files = st.file_uploader(
         "Select Windows .evtx or structured .json log files:",
         type=["evtx", "json"],
@@ -94,25 +88,22 @@ with col_upload:
     )
 
 with col_scope:
-    ico_info = icon_svg("shield", size=14, color=ACCENT_VIOLET)
+    render_card_header("Supported Telemetry Scope", pill_text="v1.0 ENFORCED", pill_class="pill-primary", icon_name="shield")
     st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-            {ico_info} Supported Event Telemetry Scope (v1.0)
-        </div>
-        <div class="soc-card" style="padding: 10px 14px;">
-            <div style="font-size: 0.74rem; font-family: 'JetBrains Mono', monospace; line-height: 1.6;">
-                <span style="color: #35D6E8; font-weight: 600;">Microsoft-Windows-Sysmon:</span><br>
+        """
+        <div class="console-card" style="padding: 10px 14px;">
+            <div style="font-size: 12px; font-family: 'JetBrains Mono', monospace; line-height: 1.6;">
+                <span style="color: #38BDF8; font-weight: 600;">Microsoft-Windows-Sysmon:</span><br>
                 • Event ID 1: Process Creation (GUID, Parent, CLI)<br>
                 • Event ID 3: Network Connection (IP, Port, GUID)<br>
                 • Event ID 11: File Creation (Drop path, Target)<br>
-                <span style="color: #8B7CFF; font-weight: 600; margin-top: 4px; display: inline-block;">Windows Security Auditing:</span><br>
+                <span style="color: #818CF8; font-weight: 600; margin-top: 4px; display: inline-block;">Windows Security Auditing:</span><br>
                 • Event ID 4624: Successful Logon (Type, IP)<br>
                 • Event ID 4688: Process Creation (PID, PPID)<br>
                 • Event ID 1102: Audit Log Cleared (Anti-Forensics)
             </div>
-            <div style="margin-top: 6px; font-size: 0.68rem; color: #64748B;">
-                *Other IDs are retained in raw evidence storage but excluded from graph entity correlation.
+            <div style="margin-top: 6px; font-size: 11px; color: #64748B;">
+                *Other IDs are retained in raw evidence storage but excluded from graph correlation.
             </div>
         </div>
         """,
@@ -120,7 +111,7 @@ with col_scope:
     )
 
 if uploaded_files:
-    st.markdown("<div style='font-size: 0.82rem; font-weight: 600; color: #F1F5F9; margin: 10px 0 6px 0;'>Selected Files for Ingestion:</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 13px; font-weight: 600; color: #F8FAFC; margin: 12px 0 6px 0;'>Selected Files for Ingestion:</div>", unsafe_allow_html=True)
     file_info = []
     file_bytes_map = {}
     for f in uploaded_files:
@@ -158,7 +149,7 @@ if uploaded_files:
         st.success(f"Processing complete: {summary['supported_events_normalized']} events normalized into active case.")
 
         # Ingestion Summary Metrics Row
-        st.markdown("<div style='font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin: 12px 0 6px 0;'>Ingestion Summary</div>", unsafe_allow_html=True)
+        st.markdown("<div style='font-size: 13px; font-weight: 600; color: #F8FAFC; margin: 12px 0 6px 0;'>Ingestion Summary</div>", unsafe_allow_html=True)
         s1, s2, s3, s4 = st.columns(4)
         with s1:
             st.metric("Files Processed", summary["files_processed"])
@@ -173,18 +164,10 @@ if uploaded_files:
             st.metric("Unsupported Records", summary["unsupported_records"])
             st.metric("Stages Completed", len(summary["stages_completed"]))
 
-st.markdown("<hr style='margin: 14px 0; border-color: rgba(255, 255, 255, 0.06);'/>", unsafe_allow_html=True)
+st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
-# 5. Ingestion History Audit Trail
-ico_trail = icon_svg("report", size=14, color=ACCENT_CYAN)
-st.markdown(
-    f"""
-    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-        {ico_trail} Ingested Evidence Audit Trail
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# 7. Ingestion Audit Trail
+render_card_header("Ingested Evidence Audit Trail", pill_text="AUDIT READY", pill_class="pill-info", icon_name="report")
 logs = get_ingestion_logs(selected_inv_id)
 
 if logs:
@@ -200,22 +183,18 @@ if logs:
             "Ingestion Time (UTC)": l["ingested_at"]
         })
     df_logs = pd.DataFrame(log_table)
-    st.dataframe(df_logs, use_container_width=True, hide_index=True, height=calc_df_height(df_logs, min_h=90, max_h=200))
+    st.dataframe(df_logs, use_container_width=True, hide_index=True, height=calc_df_height(df_logs, min_h=80, max_h=200))
 else:
-    st.info("No external files ingested yet. The current case is populated with the synthetic demonstration dataset.")
+    render_recessed_terminal(
+        "No external files ingested yet.\nThe active investigation is populated with the verified demonstration telemetry dataset:\n  • sysmon_victim_pc01.evtx (Sysmon v13.0)\n  • security_victim_pc01.evtx (Windows Security)\n  • security_dc_srv01.evtx (Domain Controller)",
+        header_label="TELEMETRY LOG STREAM",
+        status_pill="SYNTHETIC SEEDED"
+    )
 
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
-# 6. Evidence Previews
-ico_prev = icon_svg("search", size=14, color=ACCENT_VIOLET)
-st.markdown(
-    f"""
-    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-        {ico_prev} Evidence Previews (Active Case)
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# 8. Evidence Previews
+render_card_header("Evidence Previews (Active Case)", pill_text="INSPECTION", pill_class="pill-primary", icon_name="search")
 tab_raw, tab_norm = st.tabs(["Raw Evidence Sample", "Normalized Events Sample"])
 
 with tab_raw:

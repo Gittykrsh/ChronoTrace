@@ -1,11 +1,13 @@
 """Investigation Overview Dashboard — ChronoTrace.
 
-Primary operational dashboard for digital forensics investigators:
-- 6 Uniform-height KPI metric cards with instant drill-down routing
-- Interactive Plotly Attack Activity chart and Confidence Distribution histogram
-- 8-Stage ChronoTrace Forensic Processing Pipeline Tracker
-- Clickable Recent Findings table with single-row selection and forensic assessment drawer
-- Ingested Evidence Sources audit trail (auto-sized to eliminate ghost rows)
+Primary operational console for digital forensics investigators:
+- Modern engineering console styling (matte obsidian, hairline borders, cobalt accents)
+- Page header block with eyebrow, title, and descriptive subtitle
+- 6 Uniform-height KPI metric cards with direct drill-down links
+- 2-Column Plotly row (Attack Activity Timeline + 4-Factor Confidence Distribution)
+- 8-Stage forensic processing pipeline stepper
+- Single-click Actionable Findings table with instant inspector drawer
+- Auto-sized Ingested Evidence Sources table
 """
 
 import streamlit as st
@@ -27,20 +29,17 @@ from ui.theme import (
     render_confidence_badge,
     render_flag_badge,
     icon_svg,
-    ACCENT_CYAN,
-    ACCENT_VIOLET,
-    STATUS_EMERALD,
-    SUCCESS_GREEN,
-    STATUS_AMBER,
-    WARNING_AMBER,
-    ORANGE_WARN,
-    STATUS_ROSE,
-    CRITICAL_RED,
+    ACCENT_BLUE,
+    EYEBROW_BLUE,
+    STATUS_SUCCESS_TEXT,
+    STATUS_WARN_TEXT,
+    STATUS_CRIT_TEXT,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
+from ui.components import render_page_header, render_card_header, render_key_value_grid
 from database.db import (
     init_db,
     get_investigation,
@@ -55,7 +54,7 @@ from data.demo_seed import seed_demo_data
 # 1. Page Configuration & Theme
 st.set_page_config(
     page_title="Investigation Overview — ChronoTrace",
-    page_icon=":material/shield:",
+    page_icon=":material/dashboard:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -68,7 +67,7 @@ if not invs:
     seed_demo_data()
     invs = get_investigations()
 
-# 2. Render Persistent 280px Sidebar
+# 2. Render Persistent Flat Sidebar
 selected_inv_id = render_sidebar(current_page_id="overview")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -82,7 +81,7 @@ hosts = sorted(list({e["host"] for e in events if e.get("host")}))
 sources = sorted(list({e["source"] for e in events if e.get("source")}))
 
 # 4. Render Topbar with Synchronized Global Filters
-filters = render_topbar("Investigation Overview", inv, hosts=hosts, sources=sources)
+filters = render_topbar("Overview", inv, hosts=hosts, sources=sources)
 
 # Apply global filters
 filtered_events = events
@@ -107,19 +106,14 @@ if filters["search"]:
 filtered_event_ids = {e["event_id"] for e in filtered_events}
 filtered_findings = [f for f in findings if f["event_id"] in filtered_event_ids]
 
-# Subtitle / Operational Motto
-st.markdown(
-    """
-    <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
-            "Reconstruct attack sequences. Trace every finding to verified evidence."
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
+# 5. Standardized Page Header Block
+render_page_header(
+    eyebrow="FORENSIC WORKSPACE / OVERVIEW",
+    title="Investigation Overview",
+    subtitle="Reconstruct attack sequences. Trace every finding to verified evidence."
 )
 
-# 5. 6 KPI Metric Cards (Uniform Height & Direct Routing)
+# 6. Top KPI Strip (Uniform-Height Clean Cards)
 total_events = len(filtered_events)
 reconstructed_findings = len(filtered_findings)
 high_conf_count = sum(1 for f in filtered_findings if (f.get("confidence") or 0.0) >= 0.80)
@@ -135,13 +129,13 @@ unique_sources = len(set(e.get("source") for e in filtered_events if e.get("sour
 kpi1, kpi2, kpi3, kpi4, kpi5, kpi6 = st.columns(6)
 
 with kpi1:
-    ico = icon_svg("activity", size=13, color=ACCENT_CYAN)
+    ico = icon_svg("activity", size=13, color=EYEBROW_BLUE)
     st.markdown(
         f"""
-        <div class="soc-kpi-card" title="Total normalized Windows event records matching filters.">
-            <div class="soc-kpi-title">{ico} TOTAL EVENTS</div>
-            <div class="soc-kpi-value">{total_events}</div>
-            <div class="soc-kpi-sub">Normalized records</div>
+        <div class="console-kpi-card" title="Total normalized Windows event records matching filters.">
+            <div class="kpi-label">{ico} TOTAL EVENTS</div>
+            <div class="kpi-value">{total_events}</div>
+            <div class="kpi-sub">Normalized records</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -149,13 +143,13 @@ with kpi1:
     st.page_link("pages/3_Attack_Timeline.py", label="Timeline →", use_container_width=True)
 
 with kpi2:
-    ico = icon_svg("target", size=13, color=ACCENT_VIOLET)
+    ico = icon_svg("target", size=13, color=EYEBROW_BLUE)
     st.markdown(
         f"""
-        <div class="soc-kpi-card" title="Actionable forensic findings mapped to MITRE ATT&CK steps.">
-            <div class="soc-kpi-title">{ico} FINDINGS</div>
-            <div class="soc-kpi-value">{reconstructed_findings}</div>
-            <div class="soc-kpi-sub">Mapped attack steps</div>
+        <div class="console-kpi-card" title="Actionable forensic findings mapped to MITRE ATT&CK steps.">
+            <div class="kpi-label">{ico} FINDINGS</div>
+            <div class="kpi-value">{reconstructed_findings}</div>
+            <div class="kpi-sub">Mapped attack steps</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -163,13 +157,13 @@ with kpi2:
     st.page_link("pages/6_Findings_and_Reports.py", label="Findings →", use_container_width=True)
 
 with kpi3:
-    ico = icon_svg("shield", size=13, color=STATUS_EMERALD)
+    ico = icon_svg("shield", size=13, color=STATUS_SUCCESS_TEXT)
     st.markdown(
         f"""
-        <div class="soc-kpi-card" title="Events with confidence score >= 0.80 based on multi-source corroboration and exact ProcessGuid linkage.">
-            <div class="soc-kpi-title">{ico} HIGH CONF.</div>
-            <div class="soc-kpi-value" style="color: #10B981;">{high_conf_count}</div>
-            <div class="soc-kpi-sub">{high_conf_pct}% of findings</div>
+        <div class="console-kpi-card" title="Events with confidence score >= 0.80 based on multi-source corroboration and exact ProcessGuid linkage.">
+            <div class="kpi-label">{ico} HIGH CONF.</div>
+            <div class="kpi-value" style="color: #34D399;">{high_conf_count}</div>
+            <div class="kpi-sub">{high_conf_pct}% of findings</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -177,14 +171,14 @@ with kpi3:
     st.page_link("pages/3_Attack_Timeline.py", label="High Conf →", use_container_width=True)
 
 with kpi4:
-    color = STATUS_AMBER if total_conflicts > 0 else TEXT_PRIMARY
+    color = STATUS_WARN_TEXT if total_conflicts > 0 else TEXT_PRIMARY
     ico = icon_svg("alert", size=13, color=color)
     st.markdown(
         f"""
-        <div class="soc-kpi-card" title="Identified ORDER_CONFLICT (timestamp overlap) or LOG_CLEARED anti-forensic alerts.">
-            <div class="soc-kpi-title">{ico} CONFLICTS</div>
-            <div class="soc-kpi-value" style="color: {color};">{total_conflicts}</div>
-            <div class="soc-kpi-sub">{order_conflicts} order, {log_cleared} cleared</div>
+        <div class="console-kpi-card" title="Identified ORDER_CONFLICT (timestamp overlap) or LOG_CLEARED anti-forensic alerts.">
+            <div class="kpi-label">{ico} CONFLICTS</div>
+            <div class="kpi-value" style="color: {color};">{total_conflicts}</div>
+            <div class="kpi-sub">{order_conflicts} order, {log_cleared} cleared</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -192,14 +186,14 @@ with kpi4:
     st.page_link("pages/6_Findings_and_Reports.py", label="Inspect →", use_container_width=True)
 
 with kpi5:
-    color = ORANGE_WARN if missing_parents > 0 else TEXT_PRIMARY
+    color = STATUS_WARN_TEXT if missing_parents > 0 else TEXT_PRIMARY
     ico = icon_svg("layers", size=13, color=color)
     st.markdown(
         f"""
-        <div class="soc-kpi-card" title="Processes pointing to unmonitored or purged parent processes.">
-            <div class="soc-kpi-title">{ico} MISSING PARENT</div>
-            <div class="soc-kpi-value" style="color: {color};">{missing_parents}</div>
-            <div class="soc-kpi-sub">Orphaned processes</div>
+        <div class="console-kpi-card" title="Processes pointing to unmonitored or purged parent processes.">
+            <div class="kpi-label">{ico} MISSING PARENT</div>
+            <div class="kpi-value" style="color: {color};">{missing_parents}</div>
+            <div class="kpi-sub">Orphaned processes</div>
         </div>
         """,
         unsafe_allow_html=True
@@ -207,34 +201,26 @@ with kpi5:
     st.page_link("pages/4_Provenance_Graph.py", label="Graph →", use_container_width=True)
 
 with kpi6:
-    ico = icon_svg("database", size=13, color=ACCENT_CYAN)
+    ico = icon_svg("database", size=13, color=EYEBROW_BLUE)
     st.markdown(
         f"""
-        <div class="soc-kpi-card" title="Distinct logging providers contributing telemetry to this investigation.">
-            <div class="soc-kpi-title">{ico} LOG SOURCES</div>
-            <div class="soc-kpi-value">{unique_sources}</div>
-            <div class="soc-kpi-sub">Independent providers</div>
+        <div class="console-kpi-card" title="Distinct logging providers contributing telemetry to this investigation.">
+            <div class="kpi-label">{ico} LOG SOURCES</div>
+            <div class="kpi-value">{unique_sources}</div>
+            <div class="kpi-sub">Independent providers</div>
         </div>
         """,
         unsafe_allow_html=True
     )
     st.page_link("pages/5_Evidence_Explorer.py", label="Evidence →", use_container_width=True)
 
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-# 6. Main Visualization Row (Equal Height 2-Column Grid)
+# 7. Main Visualization Row (Equal Height 2-Column Grid)
 col_chart_left, col_chart_right = st.columns([6, 4], gap="medium")
 
 with col_chart_left:
-    ico_act = icon_svg("activity", size=14, color=ACCENT_CYAN)
-    st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-            {ico_act} Reconstructed Attack Activity Timeline
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card_header("Reconstructed Attack Activity", pill_text="SYSMON + SECURITY", pill_class="pill-info", icon_name="activity")
     if not filtered_events:
         st.info("No events match current filter criteria.")
     else:
@@ -251,12 +237,12 @@ with col_chart_left:
             1102: "Sec 1102 (Log Cleared)"
         }
         code_colors = {
-            1: "#35D6E8",
-            3: "#8B7CFF",
-            11: "#10B981",
-            4624: "#3B82F6",
-            4688: "#F59E0B",
-            1102: "#F43F5E"
+            1: "#38BDF8",
+            3: "#818CF8",
+            11: "#34D399",
+            4624: "#60A5FA",
+            4688: "#FBBF24",
+            1102: "#FB7185"
         }
 
         fig_activity = go.Figure()
@@ -267,30 +253,19 @@ with col_chart_left:
                 x=g["time_dt"],
                 name=name,
                 marker_color=color,
-                opacity=0.85
+                opacity=0.88
             ))
 
-        layout_act = get_plotly_layout(height=260)
+        layout_act = get_plotly_layout(height=250)
         layout_act["barmode"] = "stack"
-        layout_act["bargap"] = 0.45
+        layout_act["bargap"] = 0.6
         layout_act["xaxis"]["title"] = dict(text="Timestamp (UTC)", font=dict(size=10, color=TEXT_MUTED))
         layout_act["yaxis"]["title"] = dict(text="Event Frequency", font=dict(size=10, color=TEXT_MUTED))
         fig_activity.update_layout(**layout_act)
         st.plotly_chart(fig_activity, use_container_width=True, config={"displayModeBar": False})
 
 with col_chart_right:
-    ico_conf = icon_svg("shield", size=14, color=STATUS_EMERALD)
-    st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display: flex; align-items: center; gap: 7px;">
-                {ico_conf} Event Confidence Distribution
-            </div>
-            <span style="font-size: 0.68rem; color: #64748B; font-family: 'JetBrains Mono', monospace;">4-Factor Metric</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card_header("Event Confidence Distribution", pill_text="4-FACTOR METRIC", pill_class="pill-info", icon_name="shield")
     if not filtered_findings:
         st.info("No findings available to display.")
     else:
@@ -302,31 +277,23 @@ with col_chart_right:
             go.Bar(
                 x=["High (≥0.80)", "Mod (0.50–0.79)", "Low (<0.50)"],
                 y=[high, mod, low],
-                marker_color=[STATUS_EMERALD, STATUS_AMBER, STATUS_ROSE],
+                marker_color=["#34D399", "#FBBF24", "#FB7185"],
                 text=[high, mod, low],
                 textposition="auto",
-                textfont=dict(color="#090D16", family="JetBrains Mono", size=11),
-                width=[0.45, 0.45, 0.45]
+                textfont=dict(color="#0B111E", family="Inter", size=11),
+                width=[0.42, 0.42, 0.42]
             )
         ])
-        layout_conf = get_plotly_layout(height=260)
+        layout_conf = get_plotly_layout(height=250)
         layout_conf["xaxis"]["title"] = dict(text="Confidence Band", font=dict(size=10, color=TEXT_MUTED))
         layout_conf["yaxis"]["title"] = dict(text="Findings Count", font=dict(size=10, color=TEXT_MUTED))
         fig_conf.update_layout(**layout_conf)
         st.plotly_chart(fig_conf, use_container_width=True, config={"displayModeBar": False})
 
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-# 7. 8-Stage Pipeline Tracker (Sleek Horizontal Stepper)
-ico_pipe = icon_svg("layers", size=14, color=ACCENT_CYAN)
-st.markdown(
-    f"""
-    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 8px; display: flex; align-items: center; gap: 7px;">
-        {ico_pipe} ChronoTrace Forensic Processing Pipeline
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# 8. Forensic Processing Pipeline Stepper
+render_card_header("Processing Pipeline Stepper", pill_text="ALL STAGES SYNCHRONIZED", pill_class="pill-primary", icon_name="layers")
 
 stages = [
     ("1. Ingestion", "COMPLETED"),
@@ -343,34 +310,26 @@ p_cols = st.columns(8)
 for idx, (sname, sstate) in enumerate(stages):
     with p_cols[idx]:
         is_active = (sstate == "ACTIVE")
-        badge_color = ACCENT_CYAN if is_active else STATUS_EMERALD
-        border_col = "rgba(53, 214, 232, 0.5)" if is_active else "rgba(255, 255, 255, 0.08)"
-        bg_col = "rgba(53, 214, 232, 0.08)" if is_active else "#111827"
+        badge_cls = "pill-primary" if is_active else "pill-success"
+        bg_col = "rgba(29, 111, 232, 0.12)" if is_active else "#0F172A"
+        border_col = "rgba(56, 189, 248, 0.3)" if is_active else "rgba(255, 255, 255, 0.06)"
         st.markdown(
             f"""
             <div style="background: {bg_col}; border: 1px solid {border_col}; border-radius: 6px; padding: 7px 6px; text-align: center;">
-                <div style="font-size: 0.66rem; font-weight: 600; color: #F1F5F9; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{sname}</div>
-                <span class="soc-badge" style="background: transparent; color: {badge_color}; font-size: 0.60rem; padding: 0;">{sstate}</span>
+                <div style="font-size: 11px; font-weight: 600; color: #F8FAFC; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{sname}</div>
+                <span class="status-pill {badge_cls}" style="font-size: 9px; padding: 1px 5px;">{sstate}</span>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
 
-# 8. Bottom Row: Clickable Recent Findings & Ingested Evidence Sources
+# 9. Bottom Row: Actionable Findings & Ingested Evidence Sources
 col_fnd, col_ev = st.columns([6, 4], gap="medium")
 
 with col_fnd:
-    ico_fnd = icon_svg("target", size=14, color=ACCENT_CYAN)
-    st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-            {ico_fnd} Actionable Reconstructed Findings
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card_header("Actionable Reconstructed Findings", pill_text=f"{len(filtered_findings)} DETECTED", pill_class="pill-primary", icon_name="target")
     if not filtered_findings:
         st.info("No findings matching current filters.")
     else:
@@ -397,7 +356,7 @@ with col_fnd:
             if rows and 0 <= rows[0] < len(df_fnd):
                 active_idx = rows[0]
 
-        st.caption("Click any row below to inspect its forensic assessment:")
+        st.caption("Click any row below to inspect its detailed assessment and evidence citation:")
         try:
             tbl_event = st.dataframe(
                 df_fnd,
@@ -406,27 +365,27 @@ with col_fnd:
                 selection_mode="single-row",
                 on_select="rerun",
                 key="ov_fnd_dataframe_selection",
-                height=calc_df_height(df_fnd, min_h=140, max_h=230)
+                height=calc_df_height(df_fnd, min_h=130, max_h=220)
             )
             if tbl_event and hasattr(tbl_event, "selection") and tbl_event.selection.rows:
                 c_idx = tbl_event.selection.rows[0]
                 if 0 <= c_idx < len(filtered_findings[:10]):
                     active_idx = c_idx
         except Exception:
-            st.dataframe(df_fnd, use_container_width=True, hide_index=True, height=calc_df_height(df_fnd, min_h=140, max_h=230))
+            st.dataframe(df_fnd, use_container_width=True, hide_index=True, height=calc_df_height(df_fnd, min_h=130, max_h=220))
 
         selected_finding = filtered_findings[:10][active_idx] if filtered_findings else None
         if selected_finding:
             st.markdown(
                 f"""
-                <div class="soc-elevated" style="padding: 10px 14px; margin-top: 8px;">
+                <div class="console-elevated" style="padding: 10px 14px; margin-top: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <span style="font-weight: 600; color: #35D6E8; font-size: 0.82rem;">Finding {selected_finding['finding_id']} ({selected_finding.get('stage', 'Execution')})</span>
+                        <span style="font-weight: 600; color: #38BDF8; font-size: 13px;">Finding {selected_finding['finding_id']} ({selected_finding.get('stage', 'Execution')})</span>
                         {render_raw_ref_pill(selected_finding.get('raw_ref', 'N/A'))}
                     </div>
-                    <div style="color: #F1F5F9; font-size: 0.78rem; margin: 4px 0;">{selected_finding.get('explanation')}</div>
-                    <div style="font-size: 0.72rem; color: #94A3B8; font-family: 'JetBrains Mono', monospace;">
-                        Event: <strong style="color: #35D6E8;">{selected_finding.get('event_id')}</strong> | Host: <strong>{selected_finding.get('host')}</strong> | Confidence: <strong>{selected_finding.get('confidence', 0):.2f}</strong>
+                    <div style="color: #CBD5E1; font-size: 12px; margin: 3px 0 6px 0;">{selected_finding.get('explanation')}</div>
+                    <div style="font-size: 11px; color: #64748B;">
+                        Event: <span style="color: #38BDF8; font-family: 'JetBrains Mono', monospace;">{selected_finding.get('event_id')}</span> • Host: <strong style="color: #F8FAFC;">{selected_finding.get('host')}</strong> • Confidence: <strong style="color: #34D399;">{selected_finding.get('confidence', 0):.2f}</strong>
                     </div>
                 </div>
                 """,
@@ -434,15 +393,7 @@ with col_fnd:
             )
 
 with col_ev:
-    ico_ev = icon_svg("database", size=14, color=ACCENT_CYAN)
-    st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-            {ico_ev} Ingested Evidence Sources
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card_header("Ingested Evidence Sources", pill_text="VERIFIED TELEMETRY", pill_class="pill-info", icon_name="database")
     if logs:
         log_rows = []
         for l in logs[:10]:
@@ -454,20 +405,19 @@ with col_ev:
                 "Ingested At": l.get("ingested_at", "")[:19]
             })
         df_logs = pd.DataFrame(log_rows)
-        # Dynamically sized dataframe height eliminates ghost rows
-        st.dataframe(df_logs, use_container_width=True, hide_index=True, height=calc_df_height(df_logs, min_h=100, max_h=240))
+        st.dataframe(df_logs, use_container_width=True, hide_index=True, height=calc_df_height(df_logs, min_h=90, max_h=220))
     else:
         st.markdown(
             f"""
-            <div class="soc-card" style="padding: 12px 14px;">
-                <div style="font-size: 0.80rem; color: #F1F5F9; font-weight: 600;">Active Ground-Truth Telemetry:</div>
-                <div style="font-size: 0.74rem; color: #94A3B8; margin-top: 6px; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">
+            <div class="console-card" style="padding: 12px 14px;">
+                <div style="font-size: 13px; color: #F8FAFC; font-weight: 600;">Active Ground-Truth Telemetry:</div>
+                <div style="font-size: 11px; color: #94A3B8; margin-top: 6px; line-height: 1.6; font-family: 'JetBrains Mono', monospace;">
                     • sysmon_victim_pc01.evtx (Sysmon v13.0)<br>
                     • security_victim_pc01.evtx (Windows Security)<br>
                     • security_dc_srv01.evtx (DC Security Auditing)
                 </div>
                 <div style="margin-top: 8px;">
-                    <span class="soc-badge badge-demo">Synthetic Demo Dataset Seeded</span>
+                    <span class="status-pill pill-primary">Synthetic Demo Dataset Seeded</span>
                 </div>
             </div>
             """,

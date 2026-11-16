@@ -28,19 +28,14 @@ from ui.theme import (
     get_plotly_layout,
     render_raw_ref_pill,
     icon_svg,
-    ACCENT_CYAN,
-    ACCENT_VIOLET,
-    STATUS_EMERALD,
-    SUCCESS_GREEN,
-    STATUS_AMBER,
-    WARNING_AMBER,
-    STATUS_ROSE,
-    CRITICAL_RED,
+    ACCENT_BLUE,
+    EYEBROW_BLUE,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
+from ui.components import render_page_header, render_card_header
 from database.db import init_db, get_investigation, get_graph_data
 
 # 1. Page Configuration & Theme
@@ -53,7 +48,7 @@ st.set_page_config(
 inject_theme()
 init_db()
 
-# 2. Render Persistent 280px Sidebar
+# 2. Render Persistent Flat Sidebar
 selected_inv_id = render_sidebar(current_page_id="graph")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -65,20 +60,16 @@ edges = graph_data.get("edges", [])
 hosts = sorted(list({e["host"] for e in entities if e.get("host")}))
 
 # 4. Render Topbar
-filters = render_topbar("Provenance Graph", inv, hosts=hosts)
+filters = render_topbar("Graph", inv, hosts=hosts)
 
-st.markdown(
-    """
-    <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
-            "Follow causal relationships between processes, users, hosts, files, and network endpoints."
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
+# 5. Standardized Page Header Block
+render_page_header(
+    eyebrow="FORENSIC WORKSPACE / GRAPH",
+    title="Provenance Graph",
+    subtitle="Follow causal relationships between processes, users, hosts, files, and network endpoints."
 )
 
-# 5. Graph Control Toolbar & Inline Legend
+# 6. Graph Control Toolbar & Inline Legend
 t_col1, t_col2, t_col3 = st.columns([3, 4, 5], gap="small")
 
 with t_col1:
@@ -99,22 +90,22 @@ with t_col2:
     ).strip().lower()
 
 with t_col3:
-    # Inline Compact Visual Legend (Clean status dots, no emojis)
+    # Inline Compact Visual Legend (Clean dots, no emojis)
     st.markdown(
         """
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; height: 38px; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;">
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #35D6E8; border-radius: 2px;"></span> <span>Process</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #8B7CFF; border-radius: 50%;"></span> <span>User</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #3B82F6; border-radius: 2px;"></span> <span>Host</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></span> <span>IP</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #F59E0B; border-radius: 2px;"></span> <span>File</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; border-top: 2px dashed #F59E0B;"></span> <span>Uncertain</span></div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; height: 38px; font-size: 11px; font-family: 'Inter', sans-serif;">
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #38BDF8; border-radius: 2px;"></span> <span style="color: #94A3B8;">Process</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #818CF8; border-radius: 50%;"></span> <span style="color: #94A3B8;">User</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #60A5FA; border-radius: 2px;"></span> <span style="color: #94A3B8;">Host</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #34D399; border-radius: 50%;"></span> <span style="color: #94A3B8;">IP</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #FBBF24; border-radius: 2px;"></span> <span style="color: #94A3B8;">File</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; border-top: 2px dashed #FBBF24;"></span> <span style="color: #94A3B8;">Uncertain</span></div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-# 6. Filter Graph Entities & Edges
+# 7. Filter Graph Entities & Edges
 filtered_entities = entities
 if selected_type != "All Types":
     filtered_entities = [e for e in filtered_entities if e.get("type", "").lower() == selected_type.lower()]
@@ -135,11 +126,11 @@ filtered_edges = [
 ]
 
 NODE_COLOR_MAP = {
-    "process": "#35D6E8",
-    "user": "#8B7CFF",
-    "host": "#3B82F6",
-    "ip": "#10B981",
-    "file": "#F59E0B"
+    "process": "#38BDF8",
+    "user": "#818CF8",
+    "host": "#60A5FA",
+    "ip": "#34D399",
+    "file": "#FBBF24"
 }
 
 NODE_SHAPE_MAP = {
@@ -150,18 +141,18 @@ NODE_SHAPE_MAP = {
     "file": "square"
 }
 
-# 7. Render Graph Canvas
+# 8. Render Graph Canvas
 if not filtered_entities:
     st.info("No entities match current graph filters.")
 else:
     try:
         from pyvis.network import Network
-        net = Network(height="520px", width="100%", bgcolor="#0D1321", font_color="#F1F5F9", directed=True)
-        net.barnes_hut(gravity=-2600, central_gravity=0.32, spring_length=110, spring_strength=0.06, damping=0.92)
+        net = Network(height="500px", width="100%", bgcolor="#090E1A", font_color="#F8FAFC", directed=True)
+        net.barnes_hut(gravity=-2500, central_gravity=0.30, spring_length=110, spring_strength=0.06, damping=0.92)
 
         for ent in filtered_entities:
             etype = ent.get("type", "process").lower()
-            color = NODE_COLOR_MAP.get(etype, "#35D6E8")
+            color = NODE_COLOR_MAP.get(etype, "#38BDF8")
             shape = NODE_SHAPE_MAP.get(etype, "dot")
             label = ent.get("label", ent.get("key", "N/A"))
 
@@ -183,8 +174,8 @@ else:
                 title=tooltip,
                 color=color,
                 shape=shape,
-                size=22 if etype == "process" else 18,
-                font={"size": 11, "face": "JetBrains Mono, sans-serif", "color": "#F1F5F9"}
+                size=20 if etype == "process" else 16,
+                font={"size": 11, "face": "JetBrains Mono, monospace", "color": "#F8FAFC"}
             )
 
         for ed in filtered_edges:
@@ -195,7 +186,7 @@ else:
             ev_str = ", ".join(ev_ids) if isinstance(ev_ids, list) else str(ev_ids)
 
             edge_title = f"Relation: {relation}\nLink Strength: {link_strength:.2f}\nUncertainty: {'YES (Heuristic)' if is_uncertain else 'NO (Deterministic)'}\nSupporting Events: {ev_str}"
-            edge_color = "#F59E0B" if is_uncertain else "#35D6E8"
+            edge_color = "#FBBF24" if is_uncertain else "#38BDF8"
 
             net.add_edge(
                 ed["src_entity"],
@@ -204,7 +195,7 @@ else:
                 label=relation if not is_uncertain else f"{relation} (?)",
                 color={"color": edge_color, "opacity": 0.45 if is_uncertain else 0.85},
                 dashes=is_uncertain,
-                width=1.5 if is_uncertain else 2.5
+                width=1.5 if is_uncertain else 2.2
             )
 
         with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
@@ -219,11 +210,10 @@ else:
         except Exception:
             pass
 
-        components.html(html_code, height=530, scrolling=False)
+        components.html(html_code, height=510, scrolling=False)
 
     except Exception as e:
         st.warning(f"Interactive PyVis fallback: {str(e)}")
-        # Plotly Fallback
         G = nx.DiGraph()
         for ent in filtered_entities:
             G.add_node(ent["entity_id"], **ent)
@@ -238,38 +228,30 @@ else:
             edge_x.extend([x0, x1, None])
             edge_y.extend([y0, y1, None])
 
-        edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=1.5, color="rgba(53, 214, 232, 0.4)"), mode="lines", hoverinfo="none")
+        edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=1.5, color="rgba(56, 189, 248, 0.4)"), mode="lines", hoverinfo="none")
         node_x = [pos[n][0] for n in G.nodes()]
         node_y = [pos[n][1] for n in G.nodes()]
         node_text = [f"[{G.nodes[n].get('type')}] {G.nodes[n].get('label')}" for n in G.nodes()]
-        node_colors = [NODE_COLOR_MAP.get(G.nodes[n].get("type"), "#35D6E8") for n in G.nodes()]
+        node_colors = [NODE_COLOR_MAP.get(G.nodes[n].get("type"), "#38BDF8") for n in G.nodes()]
 
         node_trace = go.Scatter(
             x=node_x, y=node_y, mode="markers+text",
             text=[G.nodes[n].get("label", "") for n in G.nodes()],
             textposition="top center",
-            marker=dict(size=18, color=node_colors, line=dict(width=1, color="#F1F5F9")),
+            marker=dict(size=16, color=node_colors, line=dict(width=1, color="#F8FAFC")),
             hovertext=node_text, hoverinfo="text"
         )
         fig_fallback = go.Figure(data=[edge_trace, node_trace])
-        layout_fb = get_plotly_layout(height=520)
+        layout_fb = get_plotly_layout(height=500)
         layout_fb["xaxis"] = dict(showgrid=False, zeroline=False, showticklabels=False)
         layout_fb["yaxis"] = dict(showgrid=False, zeroline=False, showticklabels=False)
         fig_fallback.update_layout(**layout_fb)
         st.plotly_chart(fig_fallback, use_container_width=True)
 
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-# 8. Entity & Edge Inspectors (Tabular Breakdown)
-ico_insp = icon_svg("search", size=14, color=ACCENT_CYAN)
-st.markdown(
-    f"""
-    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-        {ico_insp} Graph Entity & Edge Telemetry Inspector
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+# 9. Entity & Edge Inspectors (Tabular Breakdown)
+render_card_header("Graph Entity & Edge Inspector", pill_text="CAUSAL TOPOLOGY", pill_class="pill-info", icon_name="search")
 tab_ent, tab_edg = st.tabs([f"Entities ({len(filtered_entities)})", f"Edges ({len(filtered_edges)})"])
 
 with tab_ent:

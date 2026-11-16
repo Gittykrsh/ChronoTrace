@@ -2,7 +2,7 @@
 
 Evidence-first forensic workspace allowing investigators to inspect the original records behind every reconstructed event:
 - Dual-pane layout (Left: Searchable raw records table; Right: Structured monospace inspector)
-- Formatted raw JSON, Section 6 normalized schema view, and provenance causality chain
+- Formatted raw JSON in recessed #070B14 terminal box, normalized schema key-value grid, and provenance linkage
 - Deep-linking support from Attack Timeline with persistent tab switching
 """
 
@@ -23,16 +23,14 @@ from ui.theme import (
     render_flag_badge,
     render_confidence_badge,
     icon_svg,
-    ACCENT_CYAN,
-    ACCENT_VIOLET,
-    STATUS_EMERALD,
-    STATUS_AMBER,
-    STATUS_ROSE,
+    ACCENT_BLUE,
+    EYEBROW_BLUE,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
+from ui.components import render_page_header, render_card_header, render_key_value_grid, render_recessed_terminal
 from database.db import init_db, get_investigation, get_raw_events, get_events
 
 # 1. Page Configuration & Theme
@@ -45,7 +43,7 @@ st.set_page_config(
 inject_theme()
 init_db()
 
-# 2. Render Persistent 280px Sidebar
+# 2. Render Persistent Flat Sidebar
 selected_inv_id = render_sidebar(current_page_id="explorer")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -57,17 +55,13 @@ hosts = sorted(list({e["host"] for e in events if e.get("host")}))
 sources = sorted(list({r["source"] for r in raw_records if r.get("source")}))
 
 # 4. Render Topbar
-filters = render_topbar("Evidence Explorer", inv, hosts=hosts, sources=sources)
+filters = render_topbar("Explorer", inv, hosts=hosts, sources=sources)
 
-st.markdown(
-    """
-    <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
-            "Inspect the immutable original records behind the reconstructed timeline."
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
+# 5. Standardized Page Header Block
+render_page_header(
+    eyebrow="FORENSIC WORKSPACE / EXPLORER",
+    title="Evidence Explorer",
+    subtitle="Inspect the immutable original records behind the reconstructed timeline."
 )
 
 if not raw_records:
@@ -77,20 +71,12 @@ if not raw_records:
 # Map normalized event by raw_ref for fast O(1) correlation
 norm_by_ref = {ev.get("raw_ref"): ev for ev in events}
 
-# 5. Dual-Pane Forensic Workspace
+# 6. Dual-Pane Forensic Workspace
 col_left, col_right = st.columns([1.05, 1.35], gap="medium")
 
 # Left Pane: Records Table
 with col_left:
-    ico_files = icon_svg("file", size=14, color=ACCENT_CYAN)
-    st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-            {ico_files} Raw Evidence Records
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card_header("Raw Evidence Records", pill_text=f"{len(raw_records)} CAPTURED", pill_class="pill-info", icon_name="file")
 
     # Search filter
     search_term = st.text_input(
@@ -161,7 +147,7 @@ with col_left:
             selection_mode="single-row",
             on_select="rerun",
             key="evidence_table_selection",
-            height=calc_df_height(df_records, min_h=200, max_h=460)
+            height=calc_df_height(df_records, min_h=180, max_h=440)
         )
         if table_out and hasattr(table_out, "selection") and table_out.selection.rows:
             c_idx = table_out.selection.rows[0]
@@ -169,19 +155,11 @@ with col_left:
                 selected_raw_ref = filtered_records[c_idx]["raw_ref"]
                 st.session_state["active_explorer_ref"] = selected_raw_ref
     except Exception:
-        st.dataframe(df_records, use_container_width=True, hide_index=True, height=calc_df_height(df_records, min_h=200, max_h=460))
+        st.dataframe(df_records, use_container_width=True, hide_index=True, height=calc_df_height(df_records, min_h=180, max_h=440))
 
 # Right Pane: Structured Forensic Record Inspector
 with col_right:
-    ico_insp = icon_svg("search", size=14, color=ACCENT_CYAN)
-    st.markdown(
-        f"""
-        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
-            {ico_insp} Structured Forensic Record Inspector
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    render_card_header("Structured Forensic Record Inspector", pill_text="IMMUTABLE EVIDENCE", pill_class="pill-primary", icon_name="search")
 
     active_rec = next((r for r in raw_records if r["raw_ref"] == selected_raw_ref), None)
     if not active_rec:
@@ -192,22 +170,22 @@ with col_right:
         # Header card with active raw_ref citation pill
         st.markdown(
             f"""
-            <div class="soc-card" style="padding: 12px 16px; margin-bottom: 10px;">
+            <div class="console-card" style="padding: 12px 16px; margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 1.02rem; color: #35D6E8; font-weight: 700;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #38BDF8; font-weight: 600;">
                         {active_rec['raw_ref']}
                     </span>
-                    <span class="soc-badge badge-high-conf">AUTHENTIC EVIDENCE RECORD</span>
+                    <span class="status-pill pill-success">AUTHENTIC RECORD</span>
                 </div>
-                <div style="font-size: 0.74rem; color: #94A3B8; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">
-                    File: <strong style="color: #F1F5F9;">{active_rec.get('source_file')}</strong> • Record #{active_rec.get('record_number')} • Provider: {active_rec.get('source')} (Event {active_rec.get('event_code')})
+                <div style="font-size: 11px; color: #94A3B8; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">
+                    File: <strong style="color: #F8FAFC;">{active_rec.get('source_file')}</strong> • Rec #{active_rec.get('record_number')} • Provider: {active_rec.get('source')} (Event {active_rec.get('event_code')})
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # 3 Clean Inspector Tabs (Zero juvenile emojis)
+        # 3 Clean Segmented Inspector Tabs
         tab_raw_json, tab_norm_schema, tab_linkage = st.tabs([
             "Raw JSON",
             "Normalized Schema",
@@ -221,18 +199,22 @@ with col_right:
                     raw_content = json.loads(raw_content)
                 except Exception:
                     pass
-            st.caption("Immutable original log record extracted directly from source .evtx / file:")
-            st.code(json.dumps(raw_content, indent=2), language="json")
+            formatted_json = json.dumps(raw_content, indent=2)
+            render_recessed_terminal(
+                formatted_json,
+                header_label=f"RAW EVENT TELEMETRY ({active_rec['raw_ref']})",
+                status_pill="VERIFIED RECORD"
+            )
 
         with tab_norm_schema:
             if norm_ev:
                 st.caption("Normalized Section 6 Schema attributes derived from this record:")
-                attr_rows = []
-                for k, v in norm_ev.items():
-                    if k not in ("investigation_id", "flags_list"):
-                        attr_rows.append({"Forensic Attribute": k, "Extracted Value": str(v) if v is not None else "—"})
-                df_attrs = pd.DataFrame(attr_rows)
-                st.dataframe(df_attrs, use_container_width=True, hide_index=True, height=calc_df_height(df_attrs, min_h=180, max_h=360))
+                attr_dict = {
+                    k: str(v) if v is not None else "—"
+                    for k, v in norm_ev.items()
+                    if k not in ("investigation_id", "flags_list")
+                }
+                render_key_value_grid(attr_dict, columns=2)
             else:
                 st.warning("This record was not normalized into an active attack event (unsupported event ID or baseline noise).")
 
@@ -240,7 +222,7 @@ with col_right:
             st.caption("Causality Chain Traceability:")
             st.markdown(
                 f"""
-                <div class="soc-elevated" style="padding: 14px; font-size: 0.82rem; line-height: 1.8;">
+                <div class="console-elevated" style="padding: 14px; font-size: 12px; line-height: 1.8;">
                     <strong>Evidence Reference:</strong> <code>{active_rec['raw_ref']}</code><br>
                     <strong>Source File:</strong> <code>{active_rec.get('source_file')}</code><br>
                     <strong>Provider Channel:</strong> <code>{active_rec.get('source')}</code><br>
@@ -251,10 +233,10 @@ with col_right:
                 flags = norm_ev.get("flags_list", [])
                 st.markdown(
                     f"""
-                    <strong>Normalized Event ID:</strong> <span style="color: #35D6E8; font-weight: 700;">{norm_ev.get('event_id')}</span><br>
+                    <strong>Normalized Event ID:</strong> <span style="color: #38BDF8; font-weight: 600;">{norm_ev.get('event_id')}</span><br>
                     <strong>Execution Window:</strong> <code>{norm_ev.get('ts_start_utc')} &rarr; {norm_ev.get('ts_end_utc')}</code><br>
                     <strong>Executable Image:</strong> <code>{norm_ev.get('image')}</code><br>
-                    <strong>MITRE ATT&CK:</strong> <span style="color: #8B7CFF; font-weight: 700;">{norm_ev.get('mitre_technique') or 'None'}</span><br>
+                    <strong>MITRE ATT&CK:</strong> <span style="color: #818CF8; font-weight: 600;">{norm_ev.get('mitre_technique') or 'None'}</span><br>
                     <strong>Confidence Assessment:</strong> {render_confidence_badge(norm_ev.get('confidence') or 0.0)}<br>
                     <strong>Uncertainty Flags:</strong> {' '.join([render_flag_badge(fl) for fl in flags]) if flags else 'None'}<br>
                     </div>
