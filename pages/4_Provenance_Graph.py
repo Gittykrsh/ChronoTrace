@@ -3,99 +3,277 @@
 Visualizes causal relationships between processes, users, hosts, files, and network endpoints:
 - NetworkX directed graph model
 - PyVis physics-enabled interactive canvas with node drag, zoom, and pan
-- Distinct shapes and color codes per entity type
-- Clear visual conventions for uncertain relationships (dashed lines, low link strength)
-- Node/Edge inspector and neighborhood explorer
+- Distinct shapes and colors per entity type
+- Visual conventions for uncertain relationships (dashed amber lines, low link strength)
+- Compact toolbar with search, filters, inline legend, and entity/edge inspectors
 """
 
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import sys
+import json
+import tempfile
+import networkx as nx
+import pandas as pd
+import plotly.graph_objects as go
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from components.page_setup import setup_forensic_page
-from components.sidebar import render_sidebar
-from components.topbar import render_topbar
-from components.graph_view import render_provenance_graph, render_graph_legend
-from database.db import get_investigation, get_graph_data
+from ui.theme import (
+    inject_theme,
+    get_plotly_layout,
+    render_raw_ref_pill,
+    ACCENT_CYAN,
+    ACCENT_VIOLET,
+    SUCCESS_GREEN,
+    WARNING_AMBER,
+    TEXT_PRIMARY,
+    TEXT_MUTED
+)
+from ui.layout import render_sidebar, render_topbar
+from database.db import init_db, get_investigation, get_graph_data
 
-# 1. Page Configuration
-inv_id = setup_forensic_page("Provenance Graph")
+# 1. Page Configuration & Theme
+st.set_page_config(
+    page_title="Provenance Graph — ChronoTrace",
+    page_icon="🛡️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+inject_theme()
+init_db()
+
+# 2. Render Persistent Sidebar
 selected_inv_id = render_sidebar(current_page_id="graph")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
-# 2. Fetch Graph Data
+# 3. Fetch Graph Data
 graph_data = get_graph_data(selected_inv_id)
 entities = graph_data.get("entities", [])
 edges = graph_data.get("edges", [])
 
-hosts = list({e["host"] for e in entities if e.get("host")})
+hosts = sorted(list({e["host"] for e in entities if e.get("host")}))
 
-# 3. Render Topbar
+# 4. Render Topbar
 filters = render_topbar("Provenance Graph", inv, hosts=hosts)
 
 st.markdown(
     """
-    <div style="margin-top: -12px; margin-bottom: 20px;">
-        <span style="font-size: 0.95rem; color: #94A7C2; font-style: italic;">
-            "Follow relationships between processes, users, hosts, files, and network endpoints."
+    <div style="margin-top: -10px; margin-bottom: 14px;">
+        <span style="font-size: 0.88rem; color: #94A7C2; font-style: italic;">
+            "Follow causal relationships between processes, users, hosts, files, and network endpoints."
         </span>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# 4. Graph Control Toolbar
-col_type, col_search = st.columns([4, 6])
-with col_type:
-    type_options = ["All Types", "Process", "User", "Host", "IP", "File"]
-    selected_type = st.selectbox("Entity Type Filter:", options=type_options, key="graph_type_select")
+# 5. Graph Control Toolbar & Inline Legend
+t_col1, t_col2, t_col3 = st.columns([3, 4, 5], gap="small")
 
-with col_search:
+with t_col1:
+    type_options = ["All Types", "Process", "User", "Host", "IP", "File"]
+    selected_type = st.selectbox(
+        "Entity Type Filter:",
+        options=type_options,
+        key="graph_type_select",
+        label_visibility="collapsed"
+    )
+
+with t_col2:
     entity_search = st.text_input(
-        "Search Entity Name / Image / Key / GUID:",
-        placeholder="e.g. powershell, 4820, jdoe, 185.220.101.5...",
-        key="graph_entity_search"
+        "Search Entity",
+        placeholder="Filter entity by name, GUID, PID, user, IP...",
+        key="graph_entity_search",
+        label_visibility="collapsed"
     ).strip().lower()
 
-# 5. Interactive Graph Canvas
-render_provenance_graph(
-    entities=entities,
-    edges=edges,
-    filter_type=selected_type if selected_type != "All Types" else None,
-    filter_host=filters["host"] if filters["host"] != "All Hosts" else None,
-    search_query=entity_search or filters["search_query"]
-)
+with t_col3:
+    # Inline Compact Visual Legend
+    st.markdown(
+        """
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; height: 38px; font-size: 0.74rem; font-family: monospace;">
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #35D6E8; border-radius: 2px;"></span> <span>Process</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #8B7CFF; border-radius: 50%;"></span> <span>User</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #4A90E2; border-radius: 2px;"></span> <span>Host</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #37D99A; border-radius: 50%;"></span> <span>IP</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #F5B942; border-radius: 2px;"></span> <span>File</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 16px; border-top: 2px dashed #F5B942;"></span> <span>Uncertain Link</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-# 6. Graph Legend & Conventions
-render_graph_legend()
+# 6. Filter Graph Entities & Edges
+filtered_entities = entities
+if selected_type != "All Types":
+    filtered_entities = [e for e in filtered_entities if e.get("type", "").lower() == selected_type.lower()]
+if filters["host"] != "All Hosts":
+    filtered_entities = [e for e in filtered_entities if e.get("host") == filters["host"]]
+if entity_search:
+    filtered_entities = [
+        e for e in filtered_entities
+        if entity_search in e.get("label", "").lower()
+        or entity_search in e.get("key", "").lower()
+        or entity_search in str(e.get("attributes", "")).lower()
+    ]
 
-st.markdown("<hr style='margin: 20px 0; border-color: rgba(148,167,194,0.12);'/>", unsafe_allow_html=True)
+visible_ent_ids = {e["entity_id"] for e in filtered_entities}
+filtered_edges = [
+    ed for ed in edges
+    if ed.get("src_entity") in visible_ent_ids and ed.get("dst_entity") in visible_ent_ids
+]
 
-# 7. Entity & Relationship Inspector (Tabular Breakdown)
-st.markdown("#### 🔍 Graph Entity & Edge Inspector")
-tab_ent, tab_edg = st.tabs([f"Entities ({len(entities)})", f"Edges ({len(edges)})"])
+NODE_COLOR_MAP = {
+    "process": "#35D6E8",
+    "user": "#8B7CFF",
+    "host": "#4A90E2",
+    "ip": "#37D99A",
+    "file": "#F5B942"
+}
+
+NODE_SHAPE_MAP = {
+    "process": "box",
+    "user": "diamond",
+    "host": "hexagon",
+    "ip": "triangle",
+    "file": "square"
+}
+
+# 7. Render Graph Canvas
+if not filtered_entities:
+    st.info("No entities match current graph filters.")
+else:
+    try:
+        from pyvis.network import Network
+        net = Network(height="540px", width="100%", bgcolor="#121D30", font_color="#EDF4FF", directed=True)
+        net.barnes_hut(gravity=-2800, central_gravity=0.35, spring_length=110, spring_strength=0.06, damping=0.92)
+
+        for ent in filtered_entities:
+            etype = ent.get("type", "process").lower()
+            color = NODE_COLOR_MAP.get(etype, "#35D6E8")
+            shape = NODE_SHAPE_MAP.get(etype, "dot")
+            label = ent.get("label", ent.get("key", "N/A"))
+
+            attrs = ent.get("attributes", {})
+            title_lines = [
+                f"Type: {etype.upper()}",
+                f"Host: {ent.get('host', 'N/A')}",
+                f"Identity: {ent.get('key')}"
+            ]
+            if isinstance(attrs, dict):
+                for k, v in attrs.items():
+                    if v and k not in ("hostname",):
+                        title_lines.append(f"{k}: {str(v)[:65]}")
+            tooltip = "\n".join(title_lines)
+
+            net.add_node(
+                ent["entity_id"],
+                label=label,
+                title=tooltip,
+                color=color,
+                shape=shape,
+                size=22 if etype == "process" else 18,
+                font={"size": 11, "face": "JetBrains Mono, sans-serif", "color": "#EDF4FF"}
+            )
+
+        for ed in filtered_edges:
+            is_uncertain = bool(ed.get("is_uncertain", 0))
+            link_strength = float(ed.get("link_strength", 1.0))
+            relation = ed.get("relation", "connected")
+            ev_ids = ed.get("evidence_event_ids", [])
+            ev_str = ", ".join(ev_ids) if isinstance(ev_ids, list) else str(ev_ids)
+
+            edge_title = f"Relation: {relation}\nLink Strength: {link_strength:.2f}\nUncertainty: {'YES (Heuristic)' if is_uncertain else 'NO (Deterministic)'}\nSupporting Events: {ev_str}"
+            edge_color = "#F5B942" if is_uncertain else "#35D6E8"
+
+            net.add_edge(
+                ed["src_entity"],
+                ed["dst_entity"],
+                title=edge_title,
+                label=relation if not is_uncertain else f"{relation} (?)",
+                color={"color": edge_color, "opacity": 0.45 if is_uncertain else 0.85},
+                dashes=is_uncertain,
+                width=1.5 if is_uncertain else 2.5
+            )
+
+        with tempfile.NamedTemporaryFile(suffix=".html", delete=False, mode="w", encoding="utf-8") as tmp:
+            tmp_path = tmp.name
+            net.save_graph(tmp_path)
+
+        with open(tmp_path, "r", encoding="utf-8") as f:
+            html_code = f.read()
+
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+        components.html(html_code, height=550, scrolling=False)
+
+    except Exception as e:
+        st.warning(f"Interactive PyVis fallback: {str(e)}")
+        # Plotly Fallback
+        G = nx.DiGraph()
+        for ent in filtered_entities:
+            G.add_node(ent["entity_id"], **ent)
+        for ed in filtered_edges:
+            G.add_edge(ed["src_entity"], ed["dst_entity"], **ed)
+
+        pos = nx.spring_layout(G, seed=42)
+        edge_x, edge_y = [], []
+        for edge in G.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+
+        edge_trace = go.Scatter(x=edge_x, y=edge_y, line=dict(width=1.5, color="rgba(53, 214, 232, 0.4)"), mode="lines", hoverinfo="none")
+        node_x = [pos[n][0] for n in G.nodes()]
+        node_y = [pos[n][1] for n in G.nodes()]
+        node_text = [f"[{G.nodes[n].get('type')}] {G.nodes[n].get('label')}" for n in G.nodes()]
+        node_colors = [NODE_COLOR_MAP.get(G.nodes[n].get("type"), "#35D6E8") for n in G.nodes()]
+
+        node_trace = go.Scatter(
+            x=node_x, y=node_y, mode="markers+text",
+            text=[G.nodes[n].get("label", "") for n in G.nodes()],
+            textposition="top center",
+            marker=dict(size=18, color=node_colors, line=dict(width=1, color="#EDF4FF")),
+            hovertext=node_text, hoverinfo="text"
+        )
+        fig_fallback = go.Figure(data=[edge_trace, node_trace])
+        layout_fb = get_plotly_layout(height=540)
+        layout_fb["xaxis"] = dict(showgrid=False, zeroline=False, showticklabels=False)
+        layout_fb["yaxis"] = dict(showgrid=False, zeroline=False, showticklabels=False)
+        fig_fallback.update_layout(**layout_fb)
+        st.plotly_chart(fig_fallback, use_container_width=True)
+
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+
+# 8. Entity & Edge Inspectors (Tabular Breakdown)
+st.markdown("##### 🔍 Graph Entity & Edge Telemetry Inspector")
+tab_ent, tab_edg = st.tabs([f"Entities ({len(filtered_entities)})", f"Edges ({len(filtered_edges)})"])
 
 with tab_ent:
     ent_rows = []
-    for ent in entities:
+    for ent in filtered_entities:
         ent_rows.append({
             "Entity ID": ent["entity_id"],
             "Type": ent["type"].upper(),
             "Label": ent["label"],
-            "Key / Identity": ent["key"],
+            "Identity / Key": ent["key"],
             "Host": ent.get("host", "N/A"),
-            "First Seen": ent.get("first_seen", "")[:19],
-            "Last Seen": ent.get("last_seen", "")[:19]
+            "First Seen (UTC)": ent.get("first_seen", "")[:19],
+            "Last Seen (UTC)": ent.get("last_seen", "")[:19]
         })
-    st.dataframe(ent_rows, use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(ent_rows), use_container_width=True, hide_index=True, height=220)
 
 with tab_edg:
     edg_rows = []
-    for ed in edges:
+    for ed in filtered_edges:
         is_unc = bool(ed.get("is_uncertain"))
         ev_ids = ed.get("evidence_event_ids", [])
         ev_str = ", ".join(ev_ids) if isinstance(ev_ids, list) else str(ev_ids)
@@ -104,8 +282,8 @@ with tab_edg:
             "Source Entity": ed["src_entity"],
             "Relation": ed["relation"],
             "Destination Entity": ed["dst_entity"],
-            "Link Strength": f"{float(ed.get('link_strength', 1.0)):.2f}",
-            "Uncertain?": "⚠️ UNCERTAIN (Heuristic)" if is_unc else "✓ High Confidence",
-            "Supporting Events": ev_str
+            "Strength": f"{float(ed.get('link_strength', 1.0)):.2f}",
+            "Uncertainty Status": "⚠️ UNCERTAIN (Heuristic)" if is_unc else "✓ High Confidence",
+            "Supporting Evidence Events": ev_str
         })
-    st.dataframe(edg_rows, use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame(edg_rows), use_container_width=True, hide_index=True, height=220)
