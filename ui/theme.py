@@ -926,35 +926,67 @@ div.st-key-btn_auth_google button,
 div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button {
     background-color: #FFFFFF !important;
     background: #FFFFFF !important;
-    color: #1F2937 !important;
-    font-family: 'Inter', -apple-system, sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.92rem !important;
-    border: 1px solid #E5E7EB !important;
+    border: 1px solid #D1D5DB !important;
     border-radius: 8px !important;
     height: 46px !important;
     min-height: 46px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 12px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.5) !important;
+    gap: 10px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.12) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     cursor: pointer !important;
+    padding: 0 16px !important;
 }
 div.st-key-btn_auth_google button:hover,
 div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button:hover {
     background-color: #F8FAFC !important;
     background: #F8FAFC !important;
     border-color: #4285F4 !important;
-    color: #111827 !important;
     transform: translateY(-1px) !important;
-    box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4) !important;
+    box-shadow: 0 6px 20px rgba(66, 133, 244, 0.35), 0 2px 4px rgba(0, 0, 0, 0.12) !important;
 }
 div.st-key-btn_auth_google button:active,
 div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button:active {
     transform: scale(0.99) !important;
     background-color: #E2E8F0 !important;
+}
+
+/* Bulletproof Dark Charcoal Typography for Google Button (Overrides Global White p) */
+div.st-key-btn_auth_google button,
+div.st-key-btn_auth_google button *,
+div.st-key-btn_auth_google button p,
+div.st-key-btn_auth_google button span,
+div.st-key-btn_auth_google button div,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button *,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button p,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button span,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button div,
+div.st-key-btn_auth_google [data-testid="stMarkdownContainer"] p {
+    color: #1F2937 !important;
+    -webkit-text-fill-color: #1F2937 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.94rem !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    letter-spacing: -0.01em !important;
+}
+
+div.st-key-btn_auth_google button:hover,
+div.st-key-btn_auth_google button:hover *,
+div.st-key-btn_auth_google button:hover p,
+div.st-key-btn_auth_google button:hover span,
+div.st-key-btn_auth_google button:hover div,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button:hover,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button:hover *,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button:hover p,
+div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button:hover span,
+div.st-key-btn_auth_google:hover [data-testid="stMarkdownContainer"] p {
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
 }
 div.st-key-btn_auth_google button::before,
 div[data-testid="stButton"]:has(button[key*="btn_auth_google"]) button::before {

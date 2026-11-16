@@ -45,17 +45,52 @@ def render_welcome_portal() -> None:
             display: none !important;
             width: 0px !important;
         }
+        /* Viewport-balanced vertical and horizontal centering */
+        [data-testid="stAppViewContainer"] > .main {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 100vh !important;
+            justify-content: center !important;
+        }
         .block-container {
-            max-width: 1240px !important;
-            padding-top: 1.2rem !important;
-            padding-bottom: 2.5rem !important;
-            margin: 0 auto !important;
+            max-width: 1140px !important;
+            margin: auto !important;
+            padding-top: 2.2rem !important;
+            padding-bottom: 2.2rem !important;
+            width: 100% !important;
+        }
+        @media (min-height: 900px) {
+            .block-container {
+                padding-top: 3.5rem !important;
+                padding-bottom: 3.5rem !important;
+            }
         }
         /* Completely eliminate any overlapping input helper instructions */
         div[data-testid="InputInstructions"],
         .stTextInput small,
         .stPasswordInput small {
             display: none !important;
+        }
+
+        /* Direct scoped override for Google button in Welcome Portal */
+        div.st-key-btn_auth_google button,
+        div.st-key-btn_auth_google button *,
+        div.st-key-btn_auth_google button p,
+        div.st-key-btn_auth_google button span,
+        div.st-key-btn_auth_google button div,
+        div.st-key-btn_auth_google [data-testid="stMarkdownContainer"] p {
+            color: #1F2937 !important;
+            -webkit-text-fill-color: #1F2937 !important;
+            font-weight: 600 !important;
+            font-size: 0.94rem !important;
+        }
+        div.st-key-btn_auth_google button:hover,
+        div.st-key-btn_auth_google button:hover *,
+        div.st-key-btn_auth_google button:hover p,
+        div.st-key-btn_auth_google button:hover span,
+        div.st-key-btn_auth_google button:hover div {
+            color: #111827 !important;
+            -webkit-text-fill-color: #111827 !important;
         }
         </style>
         """,
@@ -67,7 +102,7 @@ def render_welcome_portal() -> None:
     # 1. Top SOC Command Header Bar
     st.markdown(
         f"""
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 28px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #0D1526; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #1D6FE8 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px rgba(29, 111, 232, 0.4);">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -98,7 +133,7 @@ def render_welcome_portal() -> None:
     )
 
     # 2. Main Hero & Authentication Grid
-    col_hero, col_auth = st.columns([6.2, 4.8], gap="large")
+    col_hero, col_auth = st.columns([5.2, 4.8], gap="large", vertical_alignment="center")
 
     # LEFT COLUMN: Value Proposition & Forensic Capabilities
     with col_hero:
