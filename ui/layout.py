@@ -50,62 +50,8 @@ if hasattr(st, "dialog"):
         with c2:
             if st.button("Cancel", use_container_width=True):
                 st.rerun()
-
-    @st.dialog("Delete Investigations", width="medium")
-    def _delete_cases_dialog() -> None:
-        invs = get_investigations()
-        custom_cases = [inv for inv in invs if not inv.get("is_demo") and inv["id"] != "inv-demo-01"]
-
-        st.markdown(
-            """
-            <div style="font-size: 12.5px; color: #94A3B8; margin-bottom: 12px; line-height: 1.5;">
-                Select one or more custom investigation cases to permanently delete.<br>
-                <span style="color: #FB7185; font-weight: 500;">Warning:</span> All associated evidence records, graphs, and findings will be permanently wiped.
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        if not custom_cases:
-            st.info("No custom cases available to delete. (The baseline demonstration case is protected).")
-            if st.button("Close", use_container_width=True):
-                st.rerun()
-            return
-
-        selected_to_delete = []
-        st.markdown("<div style='font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px;'>Active Custom Cases:</div>", unsafe_allow_html=True)
-        for inv in custom_cases:
-            evt_count = len(get_events(inv["id"]))
-            is_active = (st.session_state.get("active_investigation_id") == inv["id"])
-            active_badge = " [Active Case]" if is_active else ""
-
-            checked = st.checkbox(
-                f"{inv['name']} ({inv['id']}){active_badge} — {evt_count} events",
-                key=f"chk_del_{inv['id']}"
-            )
-            if checked:
-                selected_to_delete.append(inv["id"])
-
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-        c_del, c_can = st.columns(2)
-        with c_del:
-            num = len(selected_to_delete)
-            btn_label = f"🗑️ Delete Selected ({num})" if num > 0 else "🗑️ Delete Selected"
-            if st.button(btn_label, type="primary", disabled=(num == 0), use_container_width=True):
-                for cid in selected_to_delete:
-                    delete_investigation(cid)
-                if st.session_state.get("active_investigation_id") in selected_to_delete:
-                    st.session_state["pending_active_case"] = "inv-demo-01"
-                    st.session_state["active_investigation_id"] = "inv-demo-01"
-                st.toast(f"Deleted {num} case(s).", icon="🗑️")
-                st.rerun()
-        with c_can:
-            if st.button("Cancel", use_container_width=True):
-                st.rerun()
 else:
     def _create_case_dialog() -> None:
-        pass
-    def _delete_cases_dialog() -> None:
         pass
 
 
@@ -214,13 +160,11 @@ def render_sidebar(current_page_id: str = "overview") -> str:
         if "active_investigation_id" not in st.session_state or st.session_state["active_investigation_id"] not in valid_inv_ids:
             st.session_state["active_investigation_id"] = valid_inv_ids[0]
 
-        # Format clean, readable labels without ugly truncation
+        # Format clean, readable labels without truncation
         inv_options = {}
         for inv in invs:
             prefix = "[DEMO] " if inv.get("is_demo") else "[LIVE] "
             name = inv.get("name", "Investigation")
-            if len(name) > 26:
-                name = name[:24] + "…"
             inv_options[inv["id"]] = f"{prefix}{name}"
 
         # Synchronize widget state before widget instantiation
@@ -247,25 +191,34 @@ def render_sidebar(current_page_id: str = "overview") -> str:
         )
         st.session_state["active_investigation_id"] = selected_id
 
-        # Action row: + New, 🗑️ Delete, ↺ Reset with balanced column proportions
-        col_new, col_del, col_rst = st.columns([0.92, 1.08, 0.96], gap="small")
+        # Subtle sub-line showing full title with low transparency and smaller font
+        active_inv_meta = next((i for i in invs if i["id"] == selected_id), None)
+        active_name = active_inv_meta["name"] if active_inv_meta else selected_id
+        is_active_demo = bool(active_inv_meta.get("is_demo")) if active_inv_meta else (selected_id == "inv-demo-01")
+
+        st.markdown(
+            f"""
+            <div style="font-size: 10px; color: rgba(148, 163, 184, 0.72); margin: -4px 0 6px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3;" title="{active_name}">
+                <span style="color: {'#38BDF8' if is_active_demo else '#34D399'}; font-weight: 600;">{'DEMO' if is_active_demo else 'LIVE'}</span> • {active_name}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Clean single-line action buttons with 50/50 balance - perfectly aligned, no word wrapping
+        col_new, col_rst = st.columns([1, 1], gap="small")
         with col_new:
             if hasattr(st, "dialog"):
-                if st.button("+ New", key="sb_btn_new_case", use_container_width=True, help="Create a new forensic case"):
+                if st.button("+ New Case", key="sb_btn_new_case", use_container_width=True, help="Create a new forensic case"):
                     _create_case_dialog()
             else:
-                with st.expander("+ New"):
+                with st.expander("+ New Case"):
                     new_id = st.text_input("Case ID", value=f"inv-case-{len(invs)+1:02d}")
                     new_name = st.text_input("Title")
                     if st.button("Save"):
                         create_investigation(new_id, new_name, "", "Active", False)
                         st.session_state["active_investigation_id"] = new_id
                         st.rerun()
-
-        with col_del:
-            if hasattr(st, "dialog"):
-                if st.button("🗑️ Delete", key="sb_btn_del_cases", use_container_width=True, help="Select and delete custom investigation cases"):
-                    _delete_cases_dialog()
 
         with col_rst:
             curr_id = st.session_state.get("active_investigation_id", "inv-demo-01")
@@ -287,6 +240,68 @@ def render_sidebar(current_page_id: str = "overview") -> str:
                     case_title = curr_meta['name'] if curr_meta else curr_id
                     st.toast(f"'{case_title}' evidence reset to 0.", icon="🔄")
                 st.rerun()
+
+        # Multi-case deletion with checkboxes (allows selecting single or multiple custom cases)
+        custom_cases = [inv for inv in invs if not inv.get("is_demo") and inv["id"] != "inv-demo-01"]
+        exp_label = f"🗑️ Delete Cases ({len(custom_cases)})" if custom_cases else "🗑️ Delete Cases"
+        with st.expander(exp_label, expanded=False):
+            if not custom_cases:
+                st.markdown(
+                    "<div style='font-size: 10.5px; color: #64748B; padding: 4px 0; line-height: 1.4;'>"
+                    "No custom cases created yet.<br>"
+                    "<span style='color: #475569;'>Baseline demonstration case is protected.</span>"
+                    "</div>",
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(
+                    "<div style='font-size: 10.5px; color: rgba(148, 163, 184, 0.8); margin-bottom: 6px; font-weight: 500;'>"
+                    "Select custom cases to delete:</div>",
+                    unsafe_allow_html=True
+                )
+
+                # Bulk "Select All" toggle
+                chk_all = st.checkbox("Select all custom cases", key="chk_bulk_del_all")
+
+                selected_to_delete = []
+                for cinv in custom_cases:
+                    c_id = cinv["id"]
+                    c_name = cinv["name"]
+                    c_evts = len(get_events(c_id))
+                    is_active = (selected_id == c_id)
+                    active_suffix = " (Active)" if is_active else ""
+
+                    checked = st.checkbox(
+                        f"{c_name}{active_suffix} — {c_evts} evts",
+                        value=chk_all,
+                        key=f"chk_del_case_{c_id}"
+                    )
+                    if checked:
+                        selected_to_delete.append(c_id)
+
+                num_sel = len(selected_to_delete)
+                del_btn_label = f"🗑️ Delete Selected ({num_sel})" if num_sel > 0 else "🗑️ Delete Selected"
+
+                if st.button(
+                    del_btn_label,
+                    key="btn_confirm_multi_delete",
+                    type="primary",
+                    disabled=(num_sel == 0),
+                    use_container_width=True
+                ):
+                    for cid in selected_to_delete:
+                        delete_investigation(cid)
+                    if st.session_state.get("active_investigation_id") in selected_to_delete:
+                        st.session_state["pending_active_case"] = "inv-demo-01"
+                        st.session_state["active_investigation_id"] = "inv-demo-01"
+                    for stale_key in [
+                        "selected_timeline_eid", "active_explorer_ref", "selected_raw_ref",
+                        "timeline_dataframe_selection", "evidence_table_selection",
+                        "ov_fnd_dataframe_selection", "fnd_dataframe_selection"
+                    ]:
+                        st.session_state.pop(stale_key, None)
+                    st.toast(f"Deleted {num_sel} investigation case(s).", icon="🗑️")
+                    st.rerun()
 
         # 4. Connected Telemetry Status Card (Matching 'CONNECTED DEVICE' from screenshots)
         current_inv = next((i for i in invs if i["id"] == selected_id), None)

@@ -349,16 +349,17 @@ section[data-testid="stSidebar"] div.stPageLink a[aria-current="page"]:hover {
     box-shadow: 0 4px 14px rgba(29, 111, 232, 0.65) !important;
 }
 
-/* Sidebar Action Buttons: Crisp sizing, no text clipping, perfectly balanced */
+/* Sidebar Action Buttons: Crisp sizing, 50/50 balance, no text clipping or mid-word wrapping */
 section[data-testid="stSidebar"] .stButton > button {
     white-space: nowrap !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    padding: 4px 4px !important;
-    font-size: 0.72rem !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding: 6px 10px !important;
+    font-size: 0.78rem !important;
     font-weight: 500 !important;
     height: 32px !important;
     min-height: 32px !important;
+    max-height: 32px !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     background: #0D1526 !important;
     color: #F8FAFC !important;
@@ -368,12 +369,62 @@ section[data-testid="stSidebar"] .stButton > button {
     align-items: center !important;
     justify-content: center !important;
 }
+
+section[data-testid="stSidebar"] .stButton > button,
+section[data-testid="stSidebar"] .stButton > button * {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+}
+
+section[data-testid="stSidebar"] .stButton > button p {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.78rem !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+}
+
 section[data-testid="stSidebar"] .stButton > button:hover {
     background: #131D31 !important;
     border-color: rgba(56, 189, 248, 0.35) !important;
     color: #38BDF8 !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Sidebar Delete Cases Expander & Checkboxes */
+section[data-testid="stSidebar"] details[data-testid="stExpander"] {
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+    background: #090E1A !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 6px !important;
+}
+
+section[data-testid="stSidebar"] details[data-testid="stExpander"] summary {
+    font-size: 0.74rem !important;
+    font-weight: 500 !important;
+    color: #94A3B8 !important;
+    padding: 5px 8px !important;
+}
+
+section[data-testid="stSidebar"] details[data-testid="stExpander"] summary:hover {
+    color: #38BDF8 !important;
+}
+
+section[data-testid="stSidebar"] details[data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+    padding: 8px 10px !important;
+}
+
+section[data-testid="stSidebar"] details[data-testid="stExpander"] .stCheckbox {
+    margin-bottom: 2px !important;
+}
+
+section[data-testid="stSidebar"] details[data-testid="stExpander"] .stCheckbox label span {
+    font-size: 0.73rem !important;
+    color: rgba(248, 250, 252, 0.82) !important;
+    line-height: 1.25 !important;
 }
 
 /* 7. Card & Panel Surface (#0D1526 with Hairline Border) */
@@ -648,11 +699,12 @@ div[data-baseweb="select"]:hover svg {
     transform: translateY(1px) !important;
 }
 
-/* Dropdown popover container with smooth slide-down animation */
+/* Dropdown popover container with smooth slide-down animation and high z-index */
 div[data-baseweb="popover"] {
     border-radius: 6px !important;
-    overflow: hidden !important;
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+    overflow: visible !important;
+    z-index: 999999 !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
     animation: consoleDropdownSlide 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
@@ -668,24 +720,35 @@ div[data-baseweb="popover"] {
 }
 
 ul[data-baseweb="menu"] {
-    background-color: #0D1526 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background-color: #0B1120 !important;
+    border: 1px solid rgba(56, 189, 248, 0.28) !important;
     border-radius: 6px !important;
     padding: 4px !important;
+    min-width: 280px !important;
+    max-width: 380px !important;
 }
 
 li[data-baseweb="menu-item"] {
-    color: #CBD5E1 !important;
-    font-size: 0.82rem !important;
+    color: rgba(248, 250, 252, 0.82) !important;
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
     border-radius: 4px !important;
-    padding: 6px 10px !important;
+    padding: 7px 10px !important;
+    white-space: normal !important;
+    word-break: break-word !important;
     transition: all 0.14s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 li[data-baseweb="menu-item"]:hover {
-    background-color: #131D31 !important;
-    color: #38BDF8 !important;
-    transform: translateX(2px) !important;
+    background-color: #131E35 !important;
+    color: #FFFFFF !important;
+    transform: none !important;
+}
+
+/* Closed selectbox font and transparency */
+section[data-testid="stSidebar"] div[data-baseweb="select"] span {
+    font-size: 0.78rem !important;
+    color: rgba(248, 250, 252, 0.88) !important;
 }
 
 /* 13. Dataframe Containers */
