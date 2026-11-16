@@ -24,13 +24,20 @@ if PROJECT_ROOT not in sys.path:
 
 from ui.theme import (
     inject_theme,
+    calc_df_height,
     get_plotly_layout,
     render_raw_ref_pill,
+    icon_svg,
     ACCENT_CYAN,
     ACCENT_VIOLET,
+    STATUS_EMERALD,
     SUCCESS_GREEN,
+    STATUS_AMBER,
     WARNING_AMBER,
+    STATUS_ROSE,
+    CRITICAL_RED,
     TEXT_PRIMARY,
+    TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
@@ -39,14 +46,14 @@ from database.db import init_db, get_investigation, get_graph_data
 # 1. Page Configuration & Theme
 st.set_page_config(
     page_title="Provenance Graph — ChronoTrace",
-    page_icon="🛡️",
+    page_icon=":material/hub:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 inject_theme()
 init_db()
 
-# 2. Render Persistent Sidebar
+# 2. Render Persistent 280px Sidebar
 selected_inv_id = render_sidebar(current_page_id="graph")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -63,7 +70,7 @@ filters = render_topbar("Provenance Graph", inv, hosts=hosts)
 st.markdown(
     """
     <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.88rem; color: #94A7C2; font-style: italic;">
+        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
             "Follow causal relationships between processes, users, hosts, files, and network endpoints."
         </span>
     </div>
@@ -92,16 +99,16 @@ with t_col2:
     ).strip().lower()
 
 with t_col3:
-    # Inline Compact Visual Legend
+    # Inline Compact Visual Legend (Clean status dots, no emojis)
     st.markdown(
         """
-        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; height: 38px; font-size: 0.74rem; font-family: monospace;">
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #35D6E8; border-radius: 2px;"></span> <span>Process</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #8B7CFF; border-radius: 50%;"></span> <span>User</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #4A90E2; border-radius: 2px;"></span> <span>Host</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #37D99A; border-radius: 50%;"></span> <span>IP</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 10px; height: 10px; background: #F5B942; border-radius: 2px;"></span> <span>File</span></div>
-            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 16px; border-top: 2px dashed #F5B942;"></span> <span>Uncertain Link</span></div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px; height: 38px; font-size: 0.72rem; font-family: 'JetBrains Mono', monospace;">
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #35D6E8; border-radius: 2px;"></span> <span>Process</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #8B7CFF; border-radius: 50%;"></span> <span>User</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #3B82F6; border-radius: 2px;"></span> <span>Host</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></span> <span>IP</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; background: #F59E0B; border-radius: 2px;"></span> <span>File</span></div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span style="width: 14px; border-top: 2px dashed #F59E0B;"></span> <span>Uncertain</span></div>
         </div>
         """,
         unsafe_allow_html=True
@@ -130,9 +137,9 @@ filtered_edges = [
 NODE_COLOR_MAP = {
     "process": "#35D6E8",
     "user": "#8B7CFF",
-    "host": "#4A90E2",
-    "ip": "#37D99A",
-    "file": "#F5B942"
+    "host": "#3B82F6",
+    "ip": "#10B981",
+    "file": "#F59E0B"
 }
 
 NODE_SHAPE_MAP = {
@@ -149,8 +156,8 @@ if not filtered_entities:
 else:
     try:
         from pyvis.network import Network
-        net = Network(height="540px", width="100%", bgcolor="#121D30", font_color="#EDF4FF", directed=True)
-        net.barnes_hut(gravity=-2800, central_gravity=0.35, spring_length=110, spring_strength=0.06, damping=0.92)
+        net = Network(height="520px", width="100%", bgcolor="#0D1321", font_color="#F1F5F9", directed=True)
+        net.barnes_hut(gravity=-2600, central_gravity=0.32, spring_length=110, spring_strength=0.06, damping=0.92)
 
         for ent in filtered_entities:
             etype = ent.get("type", "process").lower()
@@ -177,7 +184,7 @@ else:
                 color=color,
                 shape=shape,
                 size=22 if etype == "process" else 18,
-                font={"size": 11, "face": "JetBrains Mono, sans-serif", "color": "#EDF4FF"}
+                font={"size": 11, "face": "JetBrains Mono, sans-serif", "color": "#F1F5F9"}
             )
 
         for ed in filtered_edges:
@@ -188,7 +195,7 @@ else:
             ev_str = ", ".join(ev_ids) if isinstance(ev_ids, list) else str(ev_ids)
 
             edge_title = f"Relation: {relation}\nLink Strength: {link_strength:.2f}\nUncertainty: {'YES (Heuristic)' if is_uncertain else 'NO (Deterministic)'}\nSupporting Events: {ev_str}"
-            edge_color = "#F5B942" if is_uncertain else "#35D6E8"
+            edge_color = "#F59E0B" if is_uncertain else "#35D6E8"
 
             net.add_edge(
                 ed["src_entity"],
@@ -212,7 +219,7 @@ else:
         except Exception:
             pass
 
-        components.html(html_code, height=550, scrolling=False)
+        components.html(html_code, height=530, scrolling=False)
 
     except Exception as e:
         st.warning(f"Interactive PyVis fallback: {str(e)}")
@@ -241,20 +248,28 @@ else:
             x=node_x, y=node_y, mode="markers+text",
             text=[G.nodes[n].get("label", "") for n in G.nodes()],
             textposition="top center",
-            marker=dict(size=18, color=node_colors, line=dict(width=1, color="#EDF4FF")),
+            marker=dict(size=18, color=node_colors, line=dict(width=1, color="#F1F5F9")),
             hovertext=node_text, hoverinfo="text"
         )
         fig_fallback = go.Figure(data=[edge_trace, node_trace])
-        layout_fb = get_plotly_layout(height=540)
+        layout_fb = get_plotly_layout(height=520)
         layout_fb["xaxis"] = dict(showgrid=False, zeroline=False, showticklabels=False)
         layout_fb["yaxis"] = dict(showgrid=False, zeroline=False, showticklabels=False)
         fig_fallback.update_layout(**layout_fb)
         st.plotly_chart(fig_fallback, use_container_width=True)
 
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
 # 8. Entity & Edge Inspectors (Tabular Breakdown)
-st.markdown("##### 🔍 Graph Entity & Edge Telemetry Inspector")
+ico_insp = icon_svg("search", size=14, color=ACCENT_CYAN)
+st.markdown(
+    f"""
+    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
+        {ico_insp} Graph Entity & Edge Telemetry Inspector
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 tab_ent, tab_edg = st.tabs([f"Entities ({len(filtered_entities)})", f"Edges ({len(filtered_edges)})"])
 
 with tab_ent:
@@ -269,7 +284,8 @@ with tab_ent:
             "First Seen (UTC)": ent.get("first_seen", "")[:19],
             "Last Seen (UTC)": ent.get("last_seen", "")[:19]
         })
-    st.dataframe(pd.DataFrame(ent_rows), use_container_width=True, hide_index=True, height=220)
+    df_ent = pd.DataFrame(ent_rows)
+    st.dataframe(df_ent, use_container_width=True, hide_index=True, height=calc_df_height(df_ent, min_h=120, max_h=240))
 
 with tab_edg:
     edg_rows = []
@@ -283,7 +299,8 @@ with tab_edg:
             "Relation": ed["relation"],
             "Destination Entity": ed["dst_entity"],
             "Strength": f"{float(ed.get('link_strength', 1.0)):.2f}",
-            "Uncertainty Status": "⚠️ UNCERTAIN (Heuristic)" if is_unc else "✓ High Confidence",
+            "Uncertainty Status": "UNCERTAIN (Heuristic)" if is_unc else "High Confidence",
             "Supporting Evidence Events": ev_str
         })
-    st.dataframe(pd.DataFrame(edg_rows), use_container_width=True, hide_index=True, height=220)
+    df_edg = pd.DataFrame(edg_rows)
+    st.dataframe(df_edg, use_container_width=True, hide_index=True, height=calc_df_height(df_edg, min_h=120, max_h=240))

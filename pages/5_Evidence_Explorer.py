@@ -16,21 +16,36 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from ui.theme import inject_theme, render_raw_ref_pill, render_flag_badge, render_confidence_badge, ACCENT_CYAN
+from ui.theme import (
+    inject_theme,
+    calc_df_height,
+    render_raw_ref_pill,
+    render_flag_badge,
+    render_confidence_badge,
+    icon_svg,
+    ACCENT_CYAN,
+    ACCENT_VIOLET,
+    STATUS_EMERALD,
+    STATUS_AMBER,
+    STATUS_ROSE,
+    TEXT_PRIMARY,
+    TEXT_SECONDARY,
+    TEXT_MUTED
+)
 from ui.layout import render_sidebar, render_topbar
 from database.db import init_db, get_investigation, get_raw_events, get_events
 
 # 1. Page Configuration & Theme
 st.set_page_config(
     page_title="Evidence Explorer — ChronoTrace",
-    page_icon="🛡️",
+    page_icon=":material/manage_search:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 inject_theme()
 init_db()
 
-# 2. Render Persistent Sidebar
+# 2. Render Persistent 280px Sidebar
 selected_inv_id = render_sidebar(current_page_id="explorer")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -47,7 +62,7 @@ filters = render_topbar("Evidence Explorer", inv, hosts=hosts, sources=sources)
 st.markdown(
     """
     <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.88rem; color: #94A7C2; font-style: italic;">
+        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
             "Inspect the immutable original records behind the reconstructed timeline."
         </span>
     </div>
@@ -63,14 +78,15 @@ if not raw_records:
 norm_by_ref = {ev.get("raw_ref"): ev for ev in events}
 
 # 5. Dual-Pane Forensic Workspace
-col_left, col_right = st.columns([1.1, 1.3], gap="medium")
+col_left, col_right = st.columns([1.05, 1.35], gap="medium")
 
 # Left Pane: Records Table
 with col_left:
+    ico_files = icon_svg("file", size=14, color=ACCENT_CYAN)
     st.markdown(
-        """
-        <div style="font-size: 0.88rem; font-weight: 700; color: #EDF4FF; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-            <span>📁</span> Raw Evidence Records
+        f"""
+        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
+            {ico_files} Raw Evidence Records
         </div>
         """,
         unsafe_allow_html=True
@@ -145,7 +161,7 @@ with col_left:
             selection_mode="single-row",
             on_select="rerun",
             key="evidence_table_selection",
-            height=490
+            height=calc_df_height(df_records, min_h=200, max_h=460)
         )
         if table_out and hasattr(table_out, "selection") and table_out.selection.rows:
             c_idx = table_out.selection.rows[0]
@@ -153,14 +169,15 @@ with col_left:
                 selected_raw_ref = filtered_records[c_idx]["raw_ref"]
                 st.session_state["active_explorer_ref"] = selected_raw_ref
     except Exception:
-        st.dataframe(df_records, use_container_width=True, hide_index=True, height=490)
+        st.dataframe(df_records, use_container_width=True, hide_index=True, height=calc_df_height(df_records, min_h=200, max_h=460))
 
 # Right Pane: Structured Forensic Record Inspector
 with col_right:
+    ico_insp = icon_svg("search", size=14, color=ACCENT_CYAN)
     st.markdown(
-        """
-        <div style="font-size: 0.88rem; font-weight: 700; color: #EDF4FF; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-            <span>🔬</span> Structured Forensic Record Inspector
+        f"""
+        <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
+            {ico_insp} Structured Forensic Record Inspector
         </div>
         """,
         unsafe_allow_html=True
@@ -175,26 +192,26 @@ with col_right:
         # Header card with active raw_ref citation pill
         st.markdown(
             f"""
-            <div style="background: #121D30; border: 1px solid rgba(53,214,232,0.3); border-radius: 6px; padding: 12px 16px; margin-bottom: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+            <div class="soc-card" style="padding: 12px 16px; margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; color: #35D6E8; font-weight: 700;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 1.02rem; color: #35D6E8; font-weight: 700;">
                         {active_rec['raw_ref']}
                     </span>
                     <span class="soc-badge badge-high-conf">AUTHENTIC EVIDENCE RECORD</span>
                 </div>
-                <div style="font-size: 0.76rem; color: #94A7C2; margin-top: 4px; font-family: monospace;">
-                    File: <strong style="color: #EDF4FF;">{active_rec.get('source_file')}</strong> • Record #{active_rec.get('record_number')} • Provider: {active_rec.get('source')} (Event {active_rec.get('event_code')})
+                <div style="font-size: 0.74rem; color: #94A3B8; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">
+                    File: <strong style="color: #F1F5F9;">{active_rec.get('source_file')}</strong> • Record #{active_rec.get('record_number')} • Provider: {active_rec.get('source')} (Event {active_rec.get('event_code')})
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-        # 3 Seamless Inspector Tabs
+        # 3 Clean Inspector Tabs (Zero juvenile emojis)
         tab_raw_json, tab_norm_schema, tab_linkage = st.tabs([
-            "📄 Raw JSON",
-            "⚖️ Normalized Schema",
-            "🔗 Provenance Link"
+            "Raw JSON",
+            "Normalized Schema",
+            "Provenance Link"
         ])
 
         with tab_raw_json:
@@ -214,7 +231,8 @@ with col_right:
                 for k, v in norm_ev.items():
                     if k not in ("investigation_id", "flags_list"):
                         attr_rows.append({"Forensic Attribute": k, "Extracted Value": str(v) if v is not None else "—"})
-                st.dataframe(pd.DataFrame(attr_rows), use_container_width=True, hide_index=True, height=360)
+                df_attrs = pd.DataFrame(attr_rows)
+                st.dataframe(df_attrs, use_container_width=True, hide_index=True, height=calc_df_height(df_attrs, min_h=180, max_h=360))
             else:
                 st.warning("This record was not normalized into an active attack event (unsupported event ID or baseline noise).")
 

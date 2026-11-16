@@ -20,17 +20,23 @@ if PROJECT_ROOT not in sys.path:
 
 from ui.theme import (
     inject_theme,
+    calc_df_height,
     get_plotly_layout,
     render_raw_ref_pill,
     render_flag_badge,
     render_confidence_badge,
+    icon_svg,
     ACCENT_CYAN,
     ACCENT_VIOLET,
+    STATUS_EMERALD,
     SUCCESS_GREEN,
+    STATUS_AMBER,
     WARNING_AMBER,
     ORANGE_WARN,
+    STATUS_ROSE,
     CRITICAL_RED,
     TEXT_PRIMARY,
+    TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
@@ -39,14 +45,14 @@ from database.db import init_db, get_investigation, get_events
 # 1. Page Configuration & Theme
 st.set_page_config(
     page_title="Attack Timeline — ChronoTrace",
-    page_icon="🛡️",
+    page_icon=":material/timeline:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 inject_theme()
 init_db()
 
-# 2. Render Sidebar
+# 2. Render Persistent 280px Sidebar
 selected_inv_id = render_sidebar(current_page_id="timeline")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -61,7 +67,7 @@ filters = render_topbar("Attack Timeline", inv, hosts=hosts, sources=sources)
 st.markdown(
     """
     <div style="margin-top: -10px; margin-bottom: 14px;">
-        <span style="font-size: 0.88rem; color: #94A7C2; font-style: italic;">
+        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
             "Examine event sequences, uncertain ordering, and the verified evidence behind every finding."
         </span>
     </div>
@@ -90,13 +96,14 @@ if filters["search"]:
     ]
 
 # 5. Interactive Plotly Gantt / Range Timeline
+ico_tl = icon_svg("timeline", size=14, color=ACCENT_CYAN)
 st.markdown(
-    """
-    <div style="font-size: 0.88rem; font-weight: 700; color: #EDF4FF; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; gap: 6px;">
-            <span>⏱️</span> Interactive Reconstructed Timeline (Uncertainty Intervals)
+    f"""
+    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 7px;">
+            {ico_tl} Interactive Reconstructed Timeline (Uncertainty Intervals)
         </div>
-        <span style="font-size: 0.70rem; color: #35D6E8; font-family: monospace;">Horizontal Bars = [ts_start, ts_end] Range</span>
+        <span style="font-size: 0.68rem; color: #35D6E8; font-family: 'JetBrains Mono', monospace;">Horizontal Bars = [ts_start, ts_end] Range</span>
     </div>
     """,
     unsafe_allow_html=True
@@ -124,24 +131,24 @@ else:
     code_colors = {
         1: "#35D6E8",
         3: "#8B7CFF",
-        11: "#37D99A",
-        4624: "#4A90E2",
-        4688: "#F5B942",
-        1102: "#FF647C"
+        11: "#10B981",
+        4624: "#3B82F6",
+        4688: "#F59E0B",
+        1102: "#F43F5E"
     }
 
     fig = go.Figure()
     for idx, row in df.iterrows():
         c_code = row.get("event_code", 1)
-        bar_color = code_colors.get(c_code, "#94A7C2")
+        bar_color = code_colors.get(c_code, "#94A3B8")
         flags = row.get("flags_list", [])
 
         # Border styling for conflicts
         if "LOG_CLEARED" in flags:
-            line_color = CRITICAL_RED
+            line_color = STATUS_ROSE
             line_width = 2.5
         elif "ORDER_CONFLICT" in flags:
-            line_color = WARNING_AMBER
+            line_color = STATUS_AMBER
             line_width = 2.5
         elif "MISSING_PARENT" in flags:
             line_color = ORANGE_WARN
@@ -178,31 +185,32 @@ else:
             showlegend=False
         ))
 
-    calc_height = max(280, min(650, len(df) * 32 + 50))
+    calc_height = max(260, min(550, len(df) * 30 + 50))
     layout_timeline = get_plotly_layout(height=calc_height)
     layout_timeline["margin"] = dict(l=260, r=25, t=15, b=35)
     layout_timeline["xaxis"] = dict(
         type="date",
-        gridcolor="rgba(148, 167, 194, 0.12)",
+        gridcolor="rgba(255, 255, 255, 0.05)",
         showgrid=True,
         title=dict(text="Time Window (UTC)", font=dict(size=10, color=TEXT_MUTED)),
         tickfont=dict(family="JetBrains Mono, monospace", size=10, color=TEXT_MUTED)
     )
     layout_timeline["yaxis"] = dict(
         autorange="reversed",
-        gridcolor="rgba(148, 167, 194, 0.12)",
+        gridcolor="rgba(255, 255, 255, 0.05)",
         tickfont=dict(family="JetBrains Mono, monospace", size=10, color=TEXT_PRIMARY)
     )
     fig.update_layout(**layout_timeline)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
 # 6. Master Sequence Table with Single-Click Selection
+ico_table = icon_svg("report", size=14, color=ACCENT_CYAN)
 st.markdown(
-    """
-    <div style="font-size: 0.88rem; font-weight: 700; color: #EDF4FF; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-        <span>📋</span> Master Normalized Event Sequence Table
+    f"""
+    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 4px; display: flex; align-items: center; gap: 7px;">
+        {ico_table} Master Normalized Event Sequence Table
     </div>
     """,
     unsafe_allow_html=True
@@ -254,7 +262,7 @@ if filtered_events:
             selection_mode="single-row",
             on_select="rerun",
             key="timeline_dataframe_selection",
-            height=260
+            height=calc_df_height(df_table, min_h=150, max_h=280)
         )
         if tbl_out and hasattr(tbl_out, "selection") and tbl_out.selection.rows:
             sel_idx = tbl_out.selection.rows[0]
@@ -262,23 +270,23 @@ if filtered_events:
                 active_eid = filtered_events[sel_idx]["event_id"]
                 st.session_state["selected_timeline_eid"] = active_eid
     except Exception:
-        st.dataframe(df_table, use_container_width=True, hide_index=True, height=260)
+        st.dataframe(df_table, use_container_width=True, hide_index=True, height=calc_df_height(df_table, min_h=150, max_h=280))
 
     selected_event = next((e for e in filtered_events if e["event_id"] == active_eid), filtered_events[0])
 
-    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
     # 7. Forensic Details Drawer (Triggered by Row Selection)
     if selected_event:
         st.markdown(
             f"""
-            <div class="soc-elevated" style="border-left: 4px solid #35D6E8; padding: 14px 18px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(148,167,194,0.12); padding-bottom: 8px; margin-bottom: 12px;">
+            <div class="soc-elevated" style="border-left: 3px solid #35D6E8; padding: 12px 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px; margin-bottom: 12px;">
                     <div>
-                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; color: #35D6E8; font-weight: 800;">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 1.10rem; color: #35D6E8; font-weight: 700;">
                             {selected_event['event_id']}
                         </span>
-                        <span style="color: #EDF4FF; font-size: 0.95rem; margin-left: 10px; font-weight: 600;">
+                        <span style="color: #F1F5F9; font-size: 0.90rem; margin-left: 10px; font-weight: 600;">
                             {(selected_event.get('image') or '').split(r'\\')[-1] or selected_event.get('source')}
                         </span>
                     </div>
@@ -294,7 +302,8 @@ if filtered_events:
         col_telemetry, col_confidence = st.columns([6, 4], gap="medium")
 
         with col_telemetry:
-            st.markdown("##### 🔍 Execution Telemetry")
+            ico_tel = icon_svg("terminal", size=13, color=ACCENT_CYAN)
+            st.markdown(f"<div style='font-size: 0.82rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;'>{ico_tel} Execution Telemetry</div>", unsafe_allow_html=True)
             telemetry_grid = {
                 "Host Endpoint": selected_event.get("host"),
                 "Source Provider": f"{selected_event.get('source')} (Event {selected_event.get('event_code')})",
@@ -320,7 +329,8 @@ if filtered_events:
                 st.markdown(f"**Network Endpoint:** `{selected_event.get('src_ip') or 'N/A'}` &rarr; `{selected_event.get('dst_ip')}:{selected_event.get('dst_port')}`")
 
         with col_confidence:
-            st.markdown("##### ⚖️ Confidence & Conflict Assessment")
+            ico_conf = icon_svg("shield", size=13, color=STATUS_EMERALD)
+            st.markdown(f"<div style='font-size: 0.82rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;'>{ico_conf} Confidence & Conflict Assessment</div>", unsafe_allow_html=True)
             conf_val = selected_event.get("confidence")
             if conf_val is not None:
                 st.markdown(f"**Deterministic Score:** `{float(conf_val):.2f}` / 1.00")
@@ -349,9 +359,10 @@ if filtered_events:
                 if expl:
                     st.caption(f"**Assessment:** {expl}")
 
-            st.markdown("<hr style='margin: 12px 0;'/>", unsafe_allow_html=True)
-            st.markdown("##### 📑 Original Evidence Citation")
-            st.markdown(f"Every reconstructed event maps directly to authentic raw log records.")
+            st.markdown("<hr style='margin: 12px 0; border-color: rgba(255, 255, 255, 0.06);'/>", unsafe_allow_html=True)
+            ico_ref = icon_svg("file", size=13, color=ACCENT_CYAN)
+            st.markdown(f"<div style='font-size: 0.80rem; font-weight: 600; color: #F1F5F9; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;'>{ico_ref} Original Evidence Citation</div>", unsafe_allow_html=True)
+            st.caption("Every reconstructed event maps directly to authentic raw log records.")
             st.code(selected_event.get("raw_ref"), language="text")
 
             # Deep Link to Evidence Explorer

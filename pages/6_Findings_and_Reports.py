@@ -19,16 +19,22 @@ if PROJECT_ROOT not in sys.path:
 
 from ui.theme import (
     inject_theme,
+    calc_df_height,
     render_raw_ref_pill,
     render_flag_badge,
     render_confidence_badge,
+    icon_svg,
     ACCENT_CYAN,
     ACCENT_VIOLET,
+    STATUS_EMERALD,
     SUCCESS_GREEN,
+    STATUS_AMBER,
     WARNING_AMBER,
     ORANGE_WARN,
+    STATUS_ROSE,
     CRITICAL_RED,
     TEXT_PRIMARY,
+    TEXT_SECONDARY,
     TEXT_MUTED
 )
 from ui.layout import render_sidebar, render_topbar
@@ -49,14 +55,14 @@ from services.mitre_tagger import MITRE_TECHNIQUE_METADATA
 # 1. Page Configuration & Theme
 st.set_page_config(
     page_title="Findings & Reports — ChronoTrace",
-    page_icon="🛡️",
+    page_icon=":material/description:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 inject_theme()
 init_db()
 
-# 2. Render Persistent Sidebar
+# 2. Render Persistent 280px Sidebar
 selected_inv_id = render_sidebar(current_page_id="reports")
 inv = get_investigation(selected_inv_id) or {"id": selected_inv_id, "name": "Active Investigation", "is_demo": 1}
 
@@ -74,7 +80,7 @@ filters = render_topbar("Findings & Reports", inv, hosts=hosts, sources=sources)
 st.markdown(
     """
     <div style="margin-top: -10px; margin-bottom: 12px;">
-        <span style="font-size: 0.88rem; color: #94A7C2; font-style: italic;">
+        <span style="font-size: 0.84rem; color: #94A3B8; font-style: italic;">
             "Review reconstructed attack stages, investigate conflicts, and export evidence-linked results."
         </span>
     </div>
@@ -90,10 +96,11 @@ conflict_summary = {
 }
 
 # 5. Flush Export Toolbar
+ico_exp = icon_svg("download", size=14, color=ACCENT_CYAN)
 st.markdown(
-    """
-    <div style="font-size: 0.88rem; font-weight: 700; color: #EDF4FF; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-        <span>📤</span> Export Forensic Artifacts
+    f"""
+    <div style="font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px; display: flex; align-items: center; gap: 7px;">
+        {ico_exp} Export Forensic Artifacts
     </div>
     """,
     unsafe_allow_html=True
@@ -106,7 +113,7 @@ md_report = generate_markdown_report(inv, events, findings, conflict_summary)
 
 with exp_c1:
     st.download_button(
-        label="📥 Export CSV Timeline",
+        label="Export CSV Timeline",
         data=csv_data,
         file_name=f"{selected_inv_id}_timeline.csv",
         mime="text/csv",
@@ -116,7 +123,7 @@ with exp_c1:
 
 with exp_c2:
     st.download_button(
-        label="📥 Export JSON Findings & Graph",
+        label="Export JSON Findings & Graph",
         data=json_data,
         file_name=f"{selected_inv_id}_findings.json",
         mime="application/json",
@@ -126,7 +133,7 @@ with exp_c2:
 
 with exp_c3:
     st.download_button(
-        label="📥 Export Markdown Incident Report",
+        label="Export Markdown Incident Report",
         data=md_report,
         file_name=f"{selected_inv_id}_incident_report.md",
         mime="text/markdown",
@@ -134,14 +141,14 @@ with exp_c3:
     )
     st.caption("Publication-ready Incident Report citing raw_ref evidence and flags.")
 
-st.markdown("<hr style='margin: 12px 0 16px 0; border-color: rgba(148,167,194,0.12);'/>", unsafe_allow_html=True)
+st.markdown("<hr style='margin: 10px 0 14px 0; border-color: rgba(255, 255, 255, 0.06);'/>", unsafe_allow_html=True)
 
-# 6. Four Core Analysis Tabs
+# 6. Four Core Analysis Tabs (Zero juvenile emojis)
 tab_fnd, tab_mitre, tab_conflicts, tab_preview = st.tabs([
-    f"🎯 Actionable Findings ({len(findings)})",
-    "🛡️ Rule-Based MITRE ATT&CK View",
-    f"⚠️ Conflict Inspector ({sum(conflict_summary.values())} flags)",
-    "📑 Report Preview"
+    f"Actionable Findings ({len(findings)})",
+    "MITRE ATT&CK Matrix",
+    f"Conflict Inspector ({sum(conflict_summary.values())} flags)",
+    "Report Preview"
 ])
 
 with tab_fnd:
@@ -199,32 +206,32 @@ with tab_fnd:
                 selection_mode="single-row",
                 on_select="rerun",
                 key="fnd_dataframe_selection",
-                height=260
+                height=calc_df_height(df_fnds, min_h=150, max_h=280)
             )
             if fnd_out and hasattr(fnd_out, "selection") and fnd_out.selection.rows:
                 c_idx = fnd_out.selection.rows[0]
                 if 0 <= c_idx < len(filtered_fnds):
                     active_f_idx = c_idx
         except Exception:
-            st.dataframe(df_fnds, use_container_width=True, hide_index=True, height=260)
+            st.dataframe(df_fnds, use_container_width=True, hide_index=True, height=calc_df_height(df_fnds, min_h=150, max_h=280))
 
         selected_f = filtered_fnds[active_f_idx] if filtered_fnds else None
         if selected_f:
             st.markdown(
                 f"""
-                <div class="soc-elevated" style="border-left: 4px solid #35D6E8; padding: 14px 18px; margin-top: 10px;">
+                <div class="soc-elevated" style="border-left: 3px solid #35D6E8; padding: 12px 16px; margin-top: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <div>
-                            <strong style="color: #35D6E8; font-size: 1.05rem;">Finding {selected_f['finding_id']}</strong>
-                            <span style="color: #94A7C2; margin-left: 8px; font-weight: 600;">({selected_f.get('stage', 'Execution')})</span>
+                            <strong style="color: #35D6E8; font-size: 1.02rem;">Finding {selected_f['finding_id']}</strong>
+                            <span style="color: #94A3B8; margin-left: 8px; font-weight: 600;">({selected_f.get('stage', 'Execution')})</span>
                         </div>
                         {render_raw_ref_pill(selected_f.get('raw_ref', 'N/A'))}
                     </div>
-                    <p style="color: #EDF4FF; margin: 6px 0; font-size: 0.88rem;">{selected_f.get('explanation')}</p>
-                    <div style="font-size: 0.76rem; color: #94A7C2; font-family: monospace;">
-                        Host: <strong style="color: #EDF4FF;">{selected_f.get('host')}</strong> |
+                    <p style="color: #F1F5F9; margin: 6px 0; font-size: 0.85rem;">{selected_f.get('explanation')}</p>
+                    <div style="font-size: 0.74rem; color: #94A3B8; font-family: 'JetBrains Mono', monospace;">
+                        Host: <strong style="color: #F1F5F9;">{selected_f.get('host')}</strong> |
                         Event ID: <strong style="color: #35D6E8;">{selected_f.get('event_id')}</strong> |
-                        Confidence Score: <strong style="color: #37D99A;">{selected_f.get('confidence', 0):.2f}</strong>
+                        Confidence Score: <strong style="color: #10B981;">{selected_f.get('confidence', 0):.2f}</strong>
                     </div>
                 </div>
                 """,
@@ -232,8 +239,8 @@ with tab_fnd:
             )
 
 with tab_mitre:
-    st.markdown("##### Rule-Based MITRE ATT&CK Matrix Techniques")
-    st.caption("*Mapped deterministically via rule-based heuristics on verified log fields (no unverified ML guessing).*")
+    st.markdown("<div style='font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 2px;'>Rule-Based MITRE ATT&CK Matrix Techniques</div>", unsafe_allow_html=True)
+    st.caption("Mapped deterministically via rule-based heuristics on verified log fields (no unverified ML guessing).")
 
     tech_counts = {}
     for ev in events:
@@ -245,26 +252,26 @@ with tab_mitre:
     for idx, (t_id, meta) in enumerate(MITRE_TECHNIQUE_METADATA.items()):
         count = tech_counts.get(t_id, 0)
         col = m_cols[idx % 3]
-        card_border = ACCENT_CYAN if count > 0 else "rgba(148,167,194,0.18)"
+        card_border = "rgba(53, 214, 232, 0.4)" if count > 0 else "rgba(255, 255, 255, 0.08)"
         with col:
             st.markdown(
                 f"""
                 <div class="soc-card" style="border-color: {card_border}; padding: 12px 14px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; color: #35D6E8; font-weight: 700;">{t_id}</span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #35D6E8; font-weight: 700;">{t_id}</span>
                         <span class="soc-badge {'badge-high-conf' if count > 0 else 'badge-single-source'}">{count} Events</span>
                     </div>
-                    <div style="font-size: 0.92rem; font-weight: 700; color: #EDF4FF; margin: 4px 0;">{meta['name']}</div>
-                    <div style="font-size: 0.72rem; color: #8B7CFF; font-family: 'JetBrains Mono', monospace;">Tactic: {meta['tactic']}</div>
-                    <div style="font-size: 0.76rem; color: #94A7C2; margin-top: 6px; line-height: 1.4;">{meta['description']}</div>
+                    <div style="font-size: 0.88rem; font-weight: 600; color: #F1F5F9; margin: 4px 0;">{meta['name']}</div>
+                    <div style="font-size: 0.70rem; color: #8B7CFF; font-family: 'JetBrains Mono', monospace;">Tactic: {meta['tactic']}</div>
+                    <div style="font-size: 0.74rem; color: #94A3B8; margin-top: 6px; line-height: 1.4;">{meta['description']}</div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
 with tab_conflicts:
-    st.markdown("##### ⚠️ Conflict & Uncertainty Inspector")
-    st.caption("*Surfaces timestamp ambiguities, orphaned parent processes, audit clearing, and single-source witness events.*")
+    st.markdown("<div style='font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 2px;'>Conflict & Uncertainty Inspector</div>", unsafe_allow_html=True)
+    st.caption("Surfaces timestamp ambiguities, orphaned parent processes, audit clearing, and single-source witness events.")
 
     flag_filter = st.radio(
         "Filter by Uncertainty Category:",
@@ -289,26 +296,26 @@ with tab_conflicts:
             flags = f.get("flags_list", [])
             raw_ref = ev.get("raw_ref", "N/A")
 
-            box_border = CRITICAL_RED if "LOG_CLEARED" in flags else (
-                WARNING_AMBER if "ORDER_CONFLICT" in flags else (
+            box_border = STATUS_ROSE if "LOG_CLEARED" in flags else (
+                STATUS_AMBER if "ORDER_CONFLICT" in flags else (
                     ORANGE_WARN if "MISSING_PARENT" in flags else ACCENT_VIOLET
                 )
             )
 
             st.markdown(
                 f"""
-                <div class="soc-elevated" style="border-left: 5px solid {box_border}; padding: 12px 16px; margin-bottom: 10px;">
+                <div class="soc-elevated" style="border-left: 4px solid {box_border}; padding: 12px 16px; margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong style="color: #EDF4FF; font-size: 0.95rem;">Finding {f['finding_id']}</strong>
-                            <span style="color: #94A7C2; font-size: 0.8rem; margin-left: 8px;">(Event: {eid})</span>
+                            <strong style="color: #F1F5F9; font-size: 0.92rem;">Finding {f['finding_id']}</strong>
+                            <span style="color: #94A3B8; font-size: 0.78rem; margin-left: 8px;">(Event: {eid})</span>
                         </div>
                         {render_raw_ref_pill(raw_ref)}
                     </div>
                     <div style="margin: 6px 0;">
                         {' '.join([render_flag_badge(fl) for fl in flags])}
                     </div>
-                    <div style="font-size: 0.84rem; color: #EDF4FF; margin-top: 4px;">
+                    <div style="font-size: 0.82rem; color: #F1F5F9; margin-top: 4px;">
                         <strong>Forensic Explanation:</strong> {f.get('explanation')}
                     </div>
                 </div>
@@ -335,19 +342,19 @@ with tab_conflicts:
                     st.markdown(f"- **Entity Link Strength:** `{f.get('link_strength', 0):.2f}`")
 
                     if "ORDER_CONFLICT" in flags:
-                        st.warning("⚠️ ORDER_CONFLICT: Overlapping intervals establish that relative ordering is ambiguous. ChronoTrace preserves uncertainty rather than forcing an artificial order.")
+                        st.warning("ORDER_CONFLICT: Overlapping intervals establish that relative ordering is ambiguous. ChronoTrace preserves uncertainty rather than forcing an artificial order.")
                     if "MISSING_PARENT" in flags:
-                        st.warning("🧩 MISSING_PARENT: Child process points to an unlogged parent. Indicates potential anti-forensics or unmonitored execution.")
+                        st.warning("MISSING_PARENT: Child process points to an unlogged parent. Indicates potential anti-forensics or unmonitored execution.")
                     if "LOG_CLEARED" in flags:
-                        st.error("🚨 LOG_CLEARED: Windows Security Event 1102 recorded. Log stream was cleared; earlier telemetry integrity is compromised.")
+                        st.error("LOG_CLEARED: Windows Security Event 1102 recorded. Log stream was cleared; earlier telemetry integrity is compromised.")
                     if "SINGLE_SOURCE" in flags:
-                        st.info("ℹ️ SINGLE_SOURCE: Witnessed by a single telemetry channel without cross-validation.")
+                        st.info("SINGLE_SOURCE: Witnessed by a single telemetry channel without cross-validation.")
 
 with tab_preview:
-    st.markdown("##### Forensic Incident Report Preview")
+    st.markdown("<div style='font-size: 0.84rem; font-weight: 600; color: #F1F5F9; margin-bottom: 6px;'>Forensic Incident Report Preview</div>", unsafe_allow_html=True)
     st.markdown(
         """
-        <div class="soc-card" style="padding: 18px 24px;">
+        <div class="soc-card" style="padding: 16px 20px;">
         """,
         unsafe_allow_html=True
     )
