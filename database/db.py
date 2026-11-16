@@ -405,3 +405,48 @@ def get_ingestion_logs(investigation_id: str, db_path: str = DB_PATH) -> List[Di
             (investigation_id,)
         ).fetchall()
         return [dict(r) for r in rows]
+
+
+# --- User Management & Authentication ---
+
+def create_or_update_user(
+    email: str,
+    name: str,
+    provider: str = "local",
+    agency: str = "Cyber Defense Command",
+    clearance_level: str = "L2 Incident Responder",
+    avatar_url: str = "",
+    db_path: str = DB_PATH
+) -> Dict[str, Any]:
+    """Persists or updates a user profile."""
+    user_id = f"usr-{abs(hash(email)) % 1000000:06d}"
+    with get_connection(db_path) as conn:
+        existing = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        if existing:
+            conn.execute(
+                """
+                UPDATE users 
+                SET name = ?, provider = ?, agency = ?, clearance_level = ?, avatar_url = ?, last_login = datetime('now')
+                WHERE email = ?
+                """,
+                (name, provider, agency, clearance_level, avatar_url, email)
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO users (id, email, name, provider, agency, clearance_level, avatar_url, created_at, last_login)
+                VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+                """,
+                (user_id, email, name, provider, agency, clearance_level, avatar_url)
+            )
+        conn.commit()
+        row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        return dict(row) if row else {"id": user_id, "email": email, "name": name, "provider": provider}
+
+
+def get_user_by_email(email: str, db_path: str = DB_PATH) -> Optional[Dict[str, Any]]:
+    """Retrieves user by email."""
+    with get_connection(db_path) as conn:
+        row = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        return dict(row) if row else None
+

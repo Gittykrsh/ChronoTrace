@@ -112,6 +112,19 @@ CREATE TABLE IF NOT EXISTS ingestion_logs (
     FOREIGN KEY (investigation_id) REFERENCES investigations(id) ON DELETE CASCADE
 );
 
+-- Registered Users & Authentication
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    provider TEXT NOT NULL DEFAULT 'local', -- 'google', 'local', 'demo'
+    agency TEXT,
+    clearance_level TEXT NOT NULL DEFAULT 'L2 Incident Responder',
+    avatar_url TEXT,
+    created_at TEXT NOT NULL,
+    last_login TEXT
+);
+
 -- Indices for rapid querying
 CREATE INDEX IF NOT EXISTS idx_events_investigation ON events(investigation_id);
 CREATE INDEX IF NOT EXISTS idx_events_host ON events(host);

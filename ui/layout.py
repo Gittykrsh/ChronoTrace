@@ -212,6 +212,44 @@ def render_sidebar(current_page_id: str = "overview") -> str:
             unsafe_allow_html=True
         )
 
+        # 5. Authenticated Analyst Profile Dock & Sign Out
+        user_prof = st.session_state.get("user_profile")
+        if not user_prof:
+            user_prof = {
+                "name": "Forensic Investigator",
+                "email": "analyst@chronotrace.soc",
+                "provider": "google",
+                "clearance_level": "L3 Lead Specialist"
+            }
+        is_google = user_prof.get("provider") == "google"
+        prov_badge = f'<span class="status-pill pill-primary" style="font-size: 8.5px; padding: 1px 4px;">{icon_svg("google", size=9)} GOOGLE</span>' if is_google else '<span class="status-pill pill-info" style="font-size: 8.5px; padding: 1px 4px;">SECURE SOC</span>'
+
+        st.markdown(
+            f"""
+            <div style="background: #090E1A; border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 6px; padding: 7px 10px; margin-top: 7px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
+                    <span style="font-size: 9px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.06em;">INVESTIGATOR</span>
+                    {prov_badge}
+                </div>
+                <div style="font-size: 11px; font-weight: 600; color: #F8FAFC; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {user_prof.get('name', 'Forensic Investigator')}
+                </div>
+                <div style="font-size: 9px; color: #64748B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'JetBrains Mono', monospace;">
+                    {user_prof.get('email', 'analyst@chronotrace.soc')}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        if st.button("⎋ Sign Out", key="sb_btn_signout", use_container_width=True):
+            st.session_state["authenticated"] = False
+            st.session_state.pop("user_profile", None)
+            try:
+                st.switch_page("app.py")
+            except Exception:
+                st.rerun()
+
         return selected_id
 
 
